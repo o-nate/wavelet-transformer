@@ -8,7 +8,7 @@ import pandas as pd
 import openpyxl
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
-from logging_config import get_logger
+from utils.logging_config import get_logger
 
 # * Logging settings
 logger = get_logger(__name__)

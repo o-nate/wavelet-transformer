@@ -11,7 +11,7 @@ import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from constants import results_configs
-from logging_config import get_logger
+from utils.logging_config import get_logger
 
 from src import dwt
 
