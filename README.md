@@ -23,3 +23,9 @@ For a `venv` generated via `pip`, use:
 ```
 venv\Scripts\activate.bat
 ```
+
+## Running the dashboard locally
+Simply run the follow command in your terminal:
+```
+streamlit run app.py
+```
