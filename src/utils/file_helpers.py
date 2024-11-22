@@ -5,6 +5,7 @@ import sys
 from typing import Type
 
 import pandas as pd
+import openpyxl
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from src.utils.logging_helpers import define_other_module_log_level
