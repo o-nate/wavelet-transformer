@@ -22,18 +22,16 @@ from constants import ids, results_configs
 
 from src import retrieve_data
 from src.utils import helpers, wavelet_helpers
-from src.utils.logging_helpers import define_other_module_log_level
 from src.utils.wavelet_helpers import (
     plot_cone_of_influence,
     plot_signficance_levels,
     standardize_series,
 )
 
+from utils.logging_config import get_logger
+
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("warning")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 # * Define title and labels for plots
 UNITS = "%"

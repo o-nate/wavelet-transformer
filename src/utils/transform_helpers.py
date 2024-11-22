@@ -1,22 +1,19 @@
 """Helper functions to organize results of transforms"""
 
-import logging
-import sys
 from typing import Any, Dict, List, Tuple, Type
 
 import pandas as pd
 
 from constants import ids, results_configs
-from src import cwt, dwt, xwt
-from src.utils import wavelet_helpers
-from src.utils.logging_helpers import define_other_module_log_level
 
+from src import cwt, dwt, xwt
+
+from src.utils import wavelet_helpers
+
+from utils.logging_config import get_logger
 
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("Error")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 
 def create_dwt_dict(

@@ -1,7 +1,5 @@
 """Streamlit dashboard app"""
 
-import logging
-import sys
 from typing import Type
 
 import pandas as pd

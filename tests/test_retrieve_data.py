@@ -1,26 +1,16 @@
 """Test data retrieval functions"""
 
 # %%
-import logging
-import sys
-
 import numpy as np
 import pandas as pd
 
-from src.utils.logging_helpers import define_other_module_log_level
 from constants import ids
 from src import retrieve_data
 
-# * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("info")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+from utils.logging_config import get_logger
 
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("debug")
-logger.setLevel(logging.DEBUG)
+logger = get_logger(__name__)
 
 NOMINAL_VALUE = 100
 CPI_T = 200

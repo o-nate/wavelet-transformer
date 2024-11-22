@@ -19,13 +19,11 @@ import statsmodels.iolib.summary2
 from constants import ids, results_configs
 from src import dwt, retrieve_data
 from src.utils import helpers
-from src.utils.logging_helpers import define_other_module_log_level
+
+from utils.logging_config import get_logger
 
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("debug")
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 
 # ! Define mother wavelet

@@ -5,6 +5,11 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from utils.logging_config import get_logger
+
+# * Logging settings
+logger = get_logger(__name__)
+
 
 def plot_phase_difference_key(export: bool = False) -> None:
     """Generate plot"""

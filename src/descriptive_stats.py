@@ -15,14 +15,12 @@ import statsmodels.stats.diagnostic
 
 from constants import ids
 from src.utils.helpers import add_real_value_columns, calculate_diff_in_log
-from src.utils.logging_helpers import define_other_module_log_level
 from src import retrieve_data
 
+from utils.logging_config import get_logger
+
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("info")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 # * Define constant currency years
 CONSTANT_DOLLAR_DATE = "2017-12-01"

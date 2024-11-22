@@ -1,6 +1,5 @@
 """Script to combine and standardize yearly CAMME responses from separate csv files"""
 
-import logging
 import os
 from pathlib import Path
 import time
@@ -8,7 +7,6 @@ from typing import Dict, List, Tuple, Union
 
 import pandas as pd
 
-from src.utils.logging_helpers import define_other_module_log_level
 from constants.camme import (
     IGNORE_HOUSING,
     IGNORE_HOUSING_YEARS,
@@ -16,10 +14,10 @@ from constants.camme import (
     VARS_DICT,
 )
 
+from utils.logging_config import get_logger
+
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("debug")
-logger.setLevel(logging.DEBUG)
+logger = get_logger(__name__)
 
 # * Get data directory folder
 parent_dir = Path(__file__).parents[1]
@@ -43,7 +41,7 @@ def retrieve_csv_files(
     """Add only standard questionnaire csv file paths to dictionary"""
     for year in dir_dict:
         total_files = sum(len(files) for _, _, files in os.walk(dir_dict[year]["path"]))
-        logging.debug("There are %s total files for year %s", total_files, year)
+        logger.debug("There are %s total files for year %s", total_files, year)
         for file in dir_dict[year]["path"].rglob("*"):
             if any(supp in file.name for supp in IGNORE_SUPPLEMENTS):
                 pass
@@ -55,7 +53,7 @@ def retrieve_csv_files(
             else:
                 dir_dict[year]["csv"].append(file)
         files_kept_count = len(dir_dict[year]["csv"])
-        logging.debug(
+        logger.debug(
             "%s of %s files maintained for year %s", files_kept_count, total_files, year
         )
     return dir_dict
@@ -90,7 +88,7 @@ def convert_to_year_dataframe(
         # Empty list for DataFrames for complete year's data
         df_complete = []
         cols, new_cols = define_year_columns(year)
-        logging.debug("Columns to extract for %s: %s", year, cols)
+        logger.debug("Columns to extract for %s: %s", year, cols)
         for table in dir_dict[year]["csv"]:
             df = pd.read_csv(table, delimiter=";", encoding="latin-1")
             # * Set columns as lowercase since some apparently are read as
@@ -102,16 +100,16 @@ def convert_to_year_dataframe(
         df_dict[year] = pd.concat(df_complete, axis=0, ignore_index=True)
 
         # Rename to standard columns names
-        logging.debug("Renaming columns %s", new_cols)
+        logger.debug("Renaming columns %s", new_cols)
         df_dict[year].rename(
             columns=new_cols,
             inplace=True,
         )
         df_dict[year]["year"] = int(year)
-        logging.debug(
+        logger.debug(
             "# of NaNs for %s: %s", year, df_dict[year]["month"].isnull().sum()
         )
-        logging.debug("DataFrame shape: %s", df_dict[year].shape)
+        logger.debug("DataFrame shape: %s", df_dict[year].shape)
     return df_dict
 
 
@@ -128,11 +126,11 @@ def preprocess(
     data_dir: Union[str, os.PathLike]
 ) -> tuple[dict[str, pd.DataFrame], pd.DataFrame]:
     """Create DataFrame with all years' data"""
-    logging.info("Retrieving folders")
+    logger.info("Retrieving folders")
     camme_csv_folders = retrieve_folders(data_dir)
-    logging.info("Retrieving CSV files")
+    logger.info("Retrieving CSV files")
     camme_csv_folders = retrieve_csv_files(camme_csv_folders)
-    logging.info("Converting to DataFrames")
+    logger.info("Converting to DataFrames")
     start = time.time()
     dfs = convert_to_year_dataframe(camme_csv_folders)
     end = time.time()
@@ -142,7 +140,7 @@ def preprocess(
     print(dfs["1991"].head())
     print(dfs["2004"].head())
     print(dfs["2021"].head())
-    logging.info("Elapsed time to convert to DataFrames: %s", dtime)
+    logger.info("Elapsed time to convert to DataFrames: %s", dtime)
     return dfs, create_complete_dataframe(dfs)
 
 

@@ -1,9 +1,7 @@
 """Retrieve data for analysis via API from statistics agencies and central banks"""
 
-import logging
 import json
 import os
-import sys
 
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
@@ -16,13 +14,11 @@ import xmltodict
 
 from constants import ids
 from src.utils.helpers import convert_column_to_real_value
-from src.utils.logging_helpers import define_other_module_log_level
+
+from utils.logging_config import get_logger
 
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("info")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 # * Retrieve API credentials
 load_dotenv()

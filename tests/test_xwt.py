@@ -1,21 +1,17 @@
 """Test CWT functions"""
 
 from __future__ import division
-import logging
-import sys
 
 import numpy as np
 
-from src.utils.logging_helpers import define_other_module_log_level
 from src import retrieve_data
 from src.utils import wavelet_helpers
 from src import xwt
 
+from utils.logging_config import get_logger
+
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("warning")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 # * Preprocess data for testing
 MEASURE_1 = "000857180"

@@ -1,8 +1,5 @@
 """Conduct regression using denoised data via DWT"""
 
-import logging
-import sys
-
 from typing import Dict, Type
 
 import matplotlib.pyplot as plt
@@ -16,18 +13,15 @@ import statsmodels.api as sm
 import statsmodels.iolib.summary2
 
 from constants import ids, results_configs
-from scripts.utils.helpers import create_dwt_dict, create_dwt_results_dict
+from src.utils.transform_helpers import create_dwt_dict, create_dwt_results_dict
 from src import dwt, retrieve_data
 from src.utils import helpers
-from src.utils.logging_helpers import define_other_module_log_level
 from src.utils.wavelet_helpers import align_series
 
-# * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("debug")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+from utils.logging_config import get_logger
 
+# * Logging settings
+logger = get_logger(__name__)
 
 # ! Define mother wavelet
 MOTHER = pywt.Wavelet("db4")

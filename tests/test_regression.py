@@ -1,19 +1,14 @@
 """Test regression module"""
 
-import logging
-import sys
-
 import pywt
 import matplotlib.figure
 
-from src.utils.logging_helpers import define_other_module_log_level
 from src import retrieve_data, dwt, regression
 
+from utils.logging_config import get_logger
+
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("warning")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 # ! Define mother wavelet
 MOTHER = "db4"

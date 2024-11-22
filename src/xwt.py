@@ -2,9 +2,7 @@
 
 from __future__ import division
 from dataclasses import dataclass, field
-import logging
 from pathlib import Path
-import sys
 from typing import List, Tuple, Type
 
 import matplotlib.pyplot as plt
@@ -18,13 +16,11 @@ from constants import ids, results_configs
 
 from src import retrieve_data
 from src.utils import helpers, wavelet_helpers
-from src.utils.logging_helpers import define_other_module_log_level
+
+from utils.logging_config import get_logger
 
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("warning")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 # * Constants
 DT = 1 / 12  # Delta t

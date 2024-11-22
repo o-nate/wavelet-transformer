@@ -15,15 +15,13 @@ import pandas as pd
 import pywt
 
 from constants import ids
-from src.utils.logging_helpers import define_other_module_log_level
 from src.utils.wavelet_helpers import align_series
 from src import retrieve_data
 
+from utils.logging_config import get_logger
+
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("debug")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 # * Constants
 MOTHER = pywt.Wavelet("db4")

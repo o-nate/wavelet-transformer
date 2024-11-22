@@ -1,21 +1,17 @@
 """Test CWT functions"""
 
 from __future__ import division
-import logging
-import sys
 
 import matplotlib.pyplot as plt
 
 from constants import ids
 from src.utils import wavelet_helpers
-from src.utils.logging_helpers import define_other_module_log_level
 from src import retrieve_data, cwt
 
+from utils.logging_config import get_logger
+
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("warning")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 raw_data = retrieve_data.get_fed_data(ids.US_INF_EXPECTATIONS)
 df_exp, t_date, dat = retrieve_data.clean_fed_data(raw_data)

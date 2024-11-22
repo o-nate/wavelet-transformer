@@ -1,28 +1,25 @@
 """Tests for CAMME data processing"""
 
-import logging
-
 import pandas as pd
 
-from src.utils.logging_helpers import define_other_module_log_level
-import src.process_camme as process_camme
 from constants.camme import IGNORE_HOUSING, IGNORE_HOUSING_YEARS, IGNORE_SUPPLEMENTS
+from src import process_camme
+
+from utils.logging_config import get_logger
 
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("debug")
-logger.setLevel(logging.DEBUG)
+logger = get_logger(__name__)
 
 test_dir = process_camme.data_dir
 
 
 def test_filter_files() -> None:
     """Test that only selects standard CAMME csv files"""
-    logging.info("Retrieving folders")
+    logger.info("Retrieving folders")
     camme_csv_folders = process_camme.retrieve_folders(test_dir)
-    logging.info("Retrieving CSV files")
+    logger.info("Retrieving CSV files")
     camme_csv_folders = process_camme.retrieve_csv_files(camme_csv_folders)
-    logging.debug(camme_csv_folders)
+    logger.debug(camme_csv_folders)
     for year, files in camme_csv_folders.items():
         for file in files["csv"]:
             assert any(
@@ -37,13 +34,13 @@ def test_filter_files() -> None:
 
 def test_columns() -> None:
     """Test that columns match"""
-    logging.info("Retrieving folders")
+    logger.info("Retrieving folders")
     camme_csv_folders = process_camme.retrieve_folders(test_dir)
-    logging.info("Retrieving CSV files")
+    logger.info("Retrieving CSV files")
     camme_csv_folders = process_camme.retrieve_csv_files(camme_csv_folders)
     for year, files in camme_csv_folders.items():
         year_cols, _ = process_camme.define_year_columns(year)
-        logging.debug(year_cols)
+        logger.debug(year_cols)
         for table in files["csv"]:
             df = pd.read_csv(table, delimiter=";", encoding="latin-1")
             # Set columns as lowercase since some apparently are read as having
@@ -68,13 +65,13 @@ def test_nans() -> None:
 
 def main() -> None:
     """Run test script"""
-    logging.info("Testing file filtering")
+    logger.info("Testing file filtering")
     test_filter_files()
-    logging.info("Testing column selection")
+    logger.info("Testing column selection")
     test_columns()
-    logging.info("Testing DataFrame generation")
+    logger.info("Testing DataFrame generation")
     test_nans()
-    logging.info("CAMME test complete")
+    logger.info("CAMME test complete")
 
 
 if __name__ == "__main__":

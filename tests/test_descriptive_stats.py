@@ -1,27 +1,14 @@
 """Statistical tests for time series analysis"""
 
-import logging
-from pathlib import Path
-import sys
-
-from typing import Dict, List, Tuple, Union
-
-import matplotlib.pyplot as plt
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
-from scipy import stats
 
 from src import descriptive_stats
-from src.utils.logging_helpers import define_other_module_log_level
-from constants import ids
-from src import retrieve_data
+
+from utils.logging_config import get_logger
 
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("info")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 logger.info("Testing Shapiro-Wilk")
 
