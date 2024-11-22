@@ -8,24 +8,23 @@ import pandas as pd
 import openpyxl
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
-from src.utils.logging_helpers import define_other_module_log_level
+from logging_config import get_logger
 
 # * Logging settings
-logger = logging.getLogger(__name__)
-define_other_module_log_level("debug")
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+logger = get_logger(__name__)
 
 
-def convert_to_dataframe(file: Type[UploadedFile]) -> pd.DataFrame:
+def convert_to_dataframe(uploaded_file: Type[UploadedFile]) -> pd.DataFrame:
     """Read file based on type
 
     Args:
-        file (Type[UploadedFile]): Uploaded file object
+        uploaded_file (Type[UploadedFile]): Uploaded file object
 
     Returns:
         pd.DataFrame: DataFrame with columns `date` and `value`
     """
-    if file.type == "text/csv":
-        return pd.read_csv(file, sep=None)
-    return pd.read_excel(file)
+    if uploaded_file.type == "text/csv":
+        logger.info("Successfully loaded CSV file: %s", uploaded_file.name)
+        return pd.read_csv(uploaded_file, sep=None)
+    logger.info("Successfully loaded Excel file: %s", uploaded_file.name)
+    return pd.read_excel(uploaded_file)
