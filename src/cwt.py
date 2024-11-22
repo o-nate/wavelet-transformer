@@ -397,12 +397,12 @@ def main() -> None:
         ax.set_ylabel("Period (years)", size=20)
         ax.set_title(label, size=20)
 
-        # ! Export plot
-        parent_dir = Path(__file__).parents[1]
-        export_file = parent_dir / "results" / f"cwt_module_{measure}.png"
-        plt.savefig(export_file, bbox_inches="tight")
+        # # ! Export plot
+        # parent_dir = Path(__file__).parents[1]
+        # export_file = parent_dir / "results" / f"cwt_module_{measure}.png"
+        # plt.savefig(export_file, bbox_inches="tight")
 
-        # plt.show()
+        plt.show()
 
 
 if __name__ == "__main__":
