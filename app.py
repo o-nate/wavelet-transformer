@@ -13,45 +13,12 @@ from utils.logging_config import get_logger
 
 from src import dwt
 
-from src.utils.file_helpers import convert_to_dataframe
+from src.utils.file_helpers import load_file
 from src.utils.helpers import combine_series
 from src.utils.transform_helpers import create_dwt_dict, create_dwt_results_dict
 
 # * Logging settings
 logger = get_logger(__name__)
-
-
-def load_file(uploaded_file: Type[UploadedFile]) -> pd.DataFrame:
-    """Load data from uploaded file with error handling and logging
-
-    Args:
-        uploaded_file (Type[UploadedFile]):
-
-    Raises:
-        ValueError: Invalid file format
-
-    Returns:
-        pd.DataFrame: Columns: 'date' and 'value'
-    """
-    try:
-        df = convert_to_dataframe(uploaded_file)
-
-        # Validate DataFrame
-        if not {"date", "value"}.issubset(df.columns):
-            raise ValueError("DataFrame must contain 'date' and 'value' columns")
-
-        return df
-
-    except ValueError as ve:
-        logger.error("Validation error with file %s: %s", uploaded_file.name, ve)
-        st.error(f"Invalid file format: {ve}")
-        return None
-
-    except Exception as e:
-        logger.exception("Error loading file %s: %s", uploaded_file.name, e)
-        st.error(f"An error occurred while loading the file: {e}")
-        return None
-
 
 st.title("Wavelet Analysis Interactive Dashboard")
 
@@ -61,36 +28,50 @@ uploaded_files = st.file_uploader(
 )
 
 # Create dict to store file names with file objects
-file_dict = {uploaded_file.name: uploaded_file for uploaded_file in uploaded_files}
+file_dict = {
+    uploaded_file.name.split(".")[0]: uploaded_file for uploaded_file in uploaded_files
+}
+
+# Create list of column names based on file name to differentiate after merging the dataframes
+column_names = list(file_dict)
+logger.debug("column name: %s", column_names)
 
 # Create plot
 if uploaded_files:
     fig = go.Figure()
 
     dict_of_combined_dataframes = {
-        uploaded_file.name: load_file(uploaded_file) for uploaded_file in uploaded_files
+        column_name: load_file(uploaded_file)
+        for column_name, uploaded_file in zip(column_names, uploaded_files)
     }
-
-    combined_dfs = combine_series(
-        dict_of_combined_dataframes.values(), how="left", on="date"
+    logger.debug(
+        "dict_of_combined_dataframes keys: %s", list(dict_of_combined_dataframes)
     )
 
-    # dwt_dict = create_dwt_dict(
-    #     combined_dfs.dropna(),
-    #     dwt_measures,
-    #     mother_wavelet=results_configs.DWT_MOTHER_WAVELET,
-    # )
+    combined_dfs = combine_series(
+        dict_of_combined_dataframes.values(),
+        how="left",
+        on="date",
+        # suffixes=tuple(dict_of_combined_dataframes),
+    )
 
-    # # * Run DWTs
-    # dwt_results_dict = create_dwt_results_dict(dwt_dict, dwt_measures)
+    logger.debug("combined df columns: %s", combined_dfs.columns.to_list())
 
-    for uploaded_file in uploaded_files:
+    dwt_dict = create_dwt_dict(
+        combined_dfs.dropna(),
+        column_names,
+        mother_wavelet=results_configs.DWT_MOTHER_WAVELET,
+    )
+
+    # * Run DWTs
+    dwt_results_dict = create_dwt_results_dict(dwt_dict, column_names)
+
+    st.write(f"NOT showing DWT of: {', '.join(dwt_dict.keys())}")
+
+    for column_name, df in dict_of_combined_dataframes.items():
         # Add trace to plot
-        df = dict_of_combined_dataframes[uploaded_file.name]
         fig.add_trace(
-            go.Scatter(
-                x=df["date"], y=df["value"], mode="lines", name=uploaded_file.name
-            )
+            go.Scatter(x=df.index, y=df[column_name], mode="lines", name=column_name)
         )
 
     # # * DWT components

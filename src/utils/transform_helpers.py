@@ -1,6 +1,6 @@
 """Helper functions to organize results of transforms"""
 
-from typing import Any, Dict, List, Tuple, Type
+from typing import Any, Type
 
 import pandas as pd
 
@@ -18,10 +18,18 @@ logger = get_logger(__name__)
 
 def create_dwt_dict(
     data_for_dwt: pd.DataFrame,
-    measures_list: List[str],
+    measures_list: list[str],
     **kwargs,
-) -> Dict[str, Type[Any]]:
-    """Create dict of discrete wavelet transform objects from DataFrame"""
+) -> dict[str, Type[Any]]:
+    """Create dict of discrete wavelet transform dataclass objects from DataFrame
+
+    Args:
+        data_for_dwt (pd.DataFrame): Data
+        measures_list (list[str]): List of names of each time series to transform
+
+    Returns:
+        dict[str, Type[Any]]: Dict of DWT dataclasses
+    """
     transform_dict = {}
     logger.debug("df shape: %s", data_for_dwt.shape)
     for measure in measures_list:
@@ -33,9 +41,9 @@ def create_dwt_dict(
 
 def create_cwt_dict(
     data_for_cwt: pd.DataFrame,
-    measures_list: List[str],
+    measures_list: list[str],
     **kwargs,
-) -> Dict[str, Type[Any]]:
+) -> dict[str, Type[Any]]:
     """Create dict of continuous wavelet transform objects from DataFrame"""
     transform_dict = {}
     for measure in measures_list:
@@ -49,8 +57,8 @@ def create_cwt_dict(
 
 
 def create_xwt_dict(
-    data_for_xwt: pd.DataFrame, xwt_list: List[Tuple[str, str]], **kwargs
-) -> Dict[Tuple[str, str], Type[xwt.DataForXWT]]:
+    data_for_xwt: pd.DataFrame, xwt_list: list[tuple[str, str]], **kwargs
+) -> dict[tuple[str, str], Type[xwt.DataForXWT]]:
     """Create dict of cross-wavelet transform objects from DataFrame"""
     transform_dict = {}
     for comparison in xwt_list:
@@ -72,8 +80,8 @@ def create_xwt_dict(
 
 
 def create_dwt_results_dict(
-    dwt_data_dict: Dict[str, Type[dwt.DataForDWT]], measures_list: List[str], **kwargs
-) -> Dict[str, Type[dwt.ResultsFromDWT]]:
+    dwt_data_dict: dict[str, Type[dwt.DataForDWT]], measures_list: list[str], **kwargs
+) -> dict[str, Type[dwt.ResultsFromDWT]]:
     """Create dict of DWT results instances"""
     results_dict = {}
     for measure in measures_list:
@@ -82,8 +90,8 @@ def create_dwt_results_dict(
 
 
 def create_cwt_results_dict(
-    cwt_data_dict: Dict[str, Type[cwt.DataForCWT]], measures_list: List[str], **kwargs
-) -> Dict[str, Type[cwt.ResultsFromCWT]]:
+    cwt_data_dict: dict[str, Type[cwt.DataForCWT]], measures_list: list[str], **kwargs
+) -> dict[str, Type[cwt.ResultsFromCWT]]:
     """Create dict of CWT results instances"""
     results_dict = {}
     for measure in measures_list:
@@ -92,8 +100,8 @@ def create_cwt_results_dict(
 
 
 def create_xwt_results_dict(
-    xwt_data_dict: Dict[str, Type[xwt.DataForXWT]],
-    xwt_list: List[Tuple[str, str]],
+    xwt_data_dict: dict[str, Type[xwt.DataForXWT]],
+    xwt_list: list[tuple[str, str]],
     **kwargs,
 ) -> Type[xwt.ResultsFromXWT]:
     """Create dict of XWT results instances"""
