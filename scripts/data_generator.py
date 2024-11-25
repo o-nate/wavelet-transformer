@@ -27,5 +27,5 @@ us_data, t, y = retrieve_data.clean_fed_data(raw_data)
 us_data.head()
 
 # %%
-us_data.to_csv(f"{export_directory}/{FILE_NAME}.csv", sep=",")
+us_data.to_csv(f"{export_directory}/{FILE_NAME}.csv", sep=",", index=False)
 print(f"Data exported to {export_directory}")
