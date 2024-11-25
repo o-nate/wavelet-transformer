@@ -2,6 +2,7 @@
 
 from typing import Type
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -38,8 +39,10 @@ logger.debug("column name: %s", column_names)
 
 # Create plot
 if uploaded_files:
+    fig_original = go.Figure()
     fig = go.Figure()
 
+    # TODO change to list now that file name is stored as column name
     dict_of_combined_dataframes = {
         column_name: load_file(uploaded_file)
         for column_name, uploaded_file in zip(column_names, uploaded_files)
@@ -52,7 +55,6 @@ if uploaded_files:
         dict_of_combined_dataframes.values(),
         how="left",
         on="date",
-        # suffixes=tuple(dict_of_combined_dataframes),
     )
 
     logger.debug("combined df columns: %s", combined_dfs.columns.to_list())
@@ -66,25 +68,43 @@ if uploaded_files:
     # * Run DWTs
     dwt_results_dict = create_dwt_results_dict(dwt_dict, column_names)
 
-    st.write(f"NOT showing DWT of: {', '.join(dwt_dict.keys())}")
+    st.write(f"Showing DWT of: {', '.join(dwt_dict.keys())}")
 
     for column_name, df in dict_of_combined_dataframes.items():
         # Add trace to plot
-        fig.add_trace(
+        fig_original.add_trace(
             go.Scatter(x=df.index, y=df[column_name], mode="lines", name=column_name)
         )
 
-    # # * DWT components
-    # fig = dwt.plot_components(
-    #     label=uploaded_file.name,
-    #     coeffs=dwt_results_dict[ids.EXPECTATIONS].coeffs,
-    #     time=t,
-    #     levels=dwt_results_dict[ids.EXPECTATIONS].levels,
-    #     wavelet=results_configs.DWT_MOTHER_WAVELET,
-    #     figsize=(15, 20),
-    #     sharex=True,
-    # )
-    # plt.legend("", frameon=False)
+    # Update layout
+    fig_original.update_layout(
+        title=f"Data Visualization of: {' '.join(file_dict.keys())}",
+        xaxis_title="Date",
+        yaxis_title="Value",
+        legend={
+            "orientation": "h",
+            "entrywidthmode": "fraction",
+            "entrywidth": 0.8,
+            "yanchor": "top",
+            "y": 1.15,
+            "xanchor": "right",
+            "x": 1,
+        },
+    )
+
+    # Frequency decomposition plot
+    for series_name, dwt_result in dwt_results_dict.items():
+        t = combined_dfs.dropna().index
+        fig = dwt.plot_components(
+            label=series_name,
+            coeffs=dwt_result.coeffs,
+            time=t,
+            levels=dwt_result.levels,
+            wavelet=results_configs.DWT_MOTHER_WAVELET,
+            figsize=(15, 20),
+            sharex=True,
+        )
+    plt.legend("", frameon=False)
 
     # ## Figure 6 - Smoothing of expectations
     # dwt_results_dict[ids.EXPECTATIONS].smooth_signal(
@@ -101,22 +121,6 @@ if uploaded_files:
     #     sharex=True,
     # )
     # plt.legend("", frameon=False)
-
-    # Update layout
-    fig.update_layout(
-        title=f"Data Visualization of: {' '.join(file_dict.keys())}",
-        xaxis_title="Date",
-        yaxis_title="Value",
-        legend={
-            "orientation": "h",
-            "entrywidthmode": "fraction",
-            "entrywidth": 0.8,
-            "yanchor": "top",
-            "y": 1.15,
-            "xanchor": "right",
-            "x": 1,
-        },
-    )
 
     # Display plot
     st.plotly_chart(fig)
