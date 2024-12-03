@@ -1,5 +1,14 @@
 """IDs for datasets"""
 
+# * Wavelet transform labels
+CWT = "Continuous (CWT)"
+DWT = "Discrete (DWT)"
+XWT = "Cross-Wavelet (XWT)"
+DECOMPOSE = "Decomposition"
+SMOOTH = "Smoothing"
+ASCEND = "Ascending"
+DESCEND = "Descending"
+
 # * US data (FRED API)
 US_CPI = "CPIAUCNS"
 US_CPI_SEASONAL_ADJ = "CPIAUCSL"

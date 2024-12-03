@@ -5,6 +5,14 @@ from typing import Dict, Generator, List
 
 import numpy as np
 import pandas as pd
+import streamlit as st
+
+from constants import ids
+
+from utils.logging_config import get_logger
+
+# * Logging settings
+logger = get_logger(__name__)
 
 
 def nested_dict_values(nested_dict: Dict) -> Generator[any, any, any]:
@@ -84,3 +92,25 @@ def combine_series(dataframes: List[pd.DataFrame], **kwargs) -> pd.DataFrame:
         pd.DataFrame: Combined dataframe
     """
     return reduce(lambda left, right: pd.merge(left, right, **kwargs), dataframes)
+
+
+def adjust_sidebar(selection: str) -> str:
+    """Add second option to sidebar if DWT selected
+
+    Args:
+        selection (str): _description_
+
+    Returns:
+        str: _description_
+    """
+    if selection == ids.DWT:
+        return st.sidebar.selectbox(
+            "**Select a DWT plot**",
+            (ids.SMOOTH, ids.DECOMPOSE),
+            key="dwt_selection",
+        )
+    if selection == ids.SMOOTH:
+        return st.sidebar.radio(
+            "",
+            (ids.ASCEND, ids.DESCEND),
+        )

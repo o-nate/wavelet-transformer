@@ -1,27 +1,37 @@
 """Streamlit dashboard app"""
 
-from typing import Type
-
 import matplotlib.pyplot as plt
-import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from streamlit.runtime.uploaded_file_manager import UploadedFile
+from plotly import tools
 
-from constants import results_configs
+from constants import ids, results_configs
 from utils.logging_config import get_logger
 
 from src import dwt
 
 from src.utils.file_helpers import load_file
-from src.utils.helpers import combine_series
+from src.utils.helpers import adjust_sidebar, combine_series
+from src.utils.plot_helpers import plot_dwt_decomposition_for, plot_dwt_smoothing_for
 from src.utils.transform_helpers import create_dwt_dict, create_dwt_results_dict
 
 # * Logging settings
 logger = get_logger(__name__)
 
 st.title("Wavelet Analysis Interactive Dashboard")
+
+# Add sidebar for controlling parameters
+add_selectbox = st.sidebar.selectbox(
+    "**Select a wavelet transform**",
+    (ids.DWT, ids.CWT, ids.XWT),
+    key="wavelet_selection",
+)
+logger.debug(type(add_selectbox))
+dwt_plot_selection = adjust_sidebar(add_selectbox)
+logger.debug(dwt_plot_selection)
+dwt_smooth_plot_order = adjust_sidebar(dwt_plot_selection)
+logger.debug(dwt_smooth_plot_order)
 
 # File uploader
 uploaded_files = st.file_uploader(
@@ -39,9 +49,6 @@ logger.debug("column name: %s", column_names)
 
 # Create plot
 if uploaded_files:
-    fig_original = go.Figure()
-    fig = go.Figure()
-
     # TODO change to list now that file name is stored as column name
     dict_of_combined_dataframes = {
         column_name: load_file(uploaded_file)
@@ -70,60 +77,77 @@ if uploaded_files:
 
     st.write(f"Showing DWT of: {', '.join(dwt_dict.keys())}")
 
-    for column_name, df in dict_of_combined_dataframes.items():
-        # Add trace to plot
-        fig_original.add_trace(
-            go.Scatter(x=df.index, y=df[column_name], mode="lines", name=column_name)
-        )
-
-    # Update layout
-    fig_original.update_layout(
-        title=f"Data Visualization of: {' '.join(file_dict.keys())}",
-        xaxis_title="Date",
-        yaxis_title="Value",
-        legend={
-            "orientation": "h",
-            "entrywidthmode": "fraction",
-            "entrywidth": 0.8,
-            "yanchor": "top",
-            "y": 1.15,
-            "xanchor": "right",
-            "x": 1,
-        },
-    )
-
     # Frequency decomposition plot
-    for series_name, dwt_result in dwt_results_dict.items():
-        t = combined_dfs.dropna().index
-        fig = dwt.plot_components(
-            label=series_name,
-            coeffs=dwt_result.coeffs,
-            time=t,
-            levels=dwt_result.levels,
+    t = combined_dfs.dropna().index
+    if dwt_plot_selection == ids.DECOMPOSE:
+        fig = plot_dwt_decomposition_for(
+            dwt_results_dict,
+            t,
             wavelet=results_configs.DWT_MOTHER_WAVELET,
             figsize=(15, 20),
             sharex=True,
         )
-    plt.legend("", frameon=False)
+        plt.legend("", frameon=False)
 
-    # ## Figure 6 - Smoothing of expectations
-    # dwt_results_dict[ids.EXPECTATIONS].smooth_signal(
-    #     y_values=dwt_dict[ids.EXPECTATIONS].y_values,
-    #     mother_wavelet=dwt_dict[ids.EXPECTATIONS].mother_wavelet,
-    # )
+        # Display plot
+        st.plotly_chart(fig)
 
-    # fig = dwt.plot_smoothing(
-    #     dwt_results_dict[ids.EXPECTATIONS].smoothed_signal_dict,
-    #     t,
-    #     dwt_dict[ids.EXPECTATIONS].y_values,
-    #     ascending=True,
-    #     figsize=(15, 20),
-    #     sharex=True,
-    # )
-    # plt.legend("", frameon=False)
+    if dwt_plot_selection == ids.SMOOTH:
+        if dwt_smooth_plot_order == ids.ASCEND:
+            ASCENDING = True
+        else:
+            ASCENDING = False
+        if len(dwt_results_dict) == 1:
+            fig = plot_dwt_smoothing_for(
+                dwt_dict,
+                dwt_results_dict,
+                t,
+                ascending=ASCENDING,
+                figsize=(15, 20),
+                sharex=True,
+            )
+            plt.legend("", frameon=False)
 
-    # Display plot
-    st.plotly_chart(fig)
+            # Display plot
+            st.plotly_chart(fig)
+        elif len(dwt_results_dict) == 2:
+            col1, col2 = st.columns(2)
+            with col1:
+                dwt_results_dict[column_names[0]].smooth_signal(
+                    y_values=dwt_dict[column_names[0]].y_values,
+                    mother_wavelet=dwt_dict[column_names[0]].mother_wavelet,
+                )
+                fig1 = dwt.plot_smoothing(
+                    dwt_results_dict[column_names[0]].smoothed_signal_dict,
+                    t,
+                    dwt_dict[column_names[0]].y_values,
+                    ascending=ASCENDING,
+                    figsize=(15, 20),
+                    sharex=True,
+                )
+
+                # Display plot
+                # fig1.layout.update(width=600, height=600)
+                st.plotly_chart(fig1, use_container_width=True)
+
+            with col2:
+                dwt_results_dict[column_names[1]].smooth_signal(
+                    y_values=dwt_dict[column_names[1]].y_values,
+                    mother_wavelet=dwt_dict[column_names[1]].mother_wavelet,
+                )
+                fig2 = dwt.plot_smoothing(
+                    dwt_results_dict[column_names[1]].smoothed_signal_dict,
+                    t,
+                    dwt_dict[column_names[1]].y_values,
+                    ascending=ASCENDING,
+                    figsize=(15, 20),
+                    sharex=True,
+                )
+
+                # Display plot
+                # fig2.layout.update(width=600, height=600)
+                st.plotly_chart(fig2, use_container_width=True)
+        plt.legend("", frameon=False)
 
 else:
     st.write("Upload a spreadsheet file to begin.")

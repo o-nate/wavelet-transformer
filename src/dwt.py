@@ -8,11 +8,12 @@ import sys
 from typing import Dict, Generator, List, Tuple, Type, Union
 
 import matplotlib.pyplot as plt
-import matplotlib.figure
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import pywt
+
+from matplotlib.figure import Figure
 
 from constants import ids
 from src.utils.wavelet_helpers import align_series
@@ -127,7 +128,7 @@ def plot_components(
     levels: int,
     wavelet: str,
     **kwargs,
-) -> matplotlib.figure.Figure:
+) -> Figure:
     """Plot each series component separately"""
     fig, ax = plt.subplots(levels + 1, 1, **kwargs)
     smooth_component = reconstruct_signal_component(coeffs, wavelet, 0)
@@ -162,7 +163,7 @@ def plot_smoothing(
     original_y: npt.NDArray,
     ascending: bool = False,
     **kwargs,
-) -> Tuple[matplotlib.figure.Figure, str]:
+) -> Figure:
     """Graph series of smoothed signals with original signal"""
     fig, axs = plt.subplots(len(smooth_signals), 1, **kwargs)
     # * Loop through levels and add detail level components
