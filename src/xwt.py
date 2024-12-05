@@ -15,7 +15,7 @@ import pycwt as wavelet
 from constants import ids, results_configs
 
 from src import retrieve_data
-from src.utils import helpers, wavelet_helpers
+from src.utils import helpers, pycwt_patches, wavelet_helpers
 
 from utils.logging_config import get_logger
 
@@ -98,7 +98,7 @@ def run_xwt(
         dj=cross_wavelet_transform.delta_j,
         s0=cross_wavelet_transform.initial_scale,
         wavelet=cross_wavelet_transform.mother_wavelet,
-        ignore_strong_trends=ignore_strong_trends,
+        # ignore_strong_trends=ignore_strong_trends,
     )
 
     if normalize:
@@ -260,25 +260,25 @@ def main() -> None:
 
     series_comparisons = [
         (ids.DIFF_LOG_CPI, ids.EXPECTATIONS),
-        (ids.EXPECTATIONS, ids.NONDURABLES_CHG),
-        (ids.EXPECTATIONS, ids.DURABLES_CHG),
-        (ids.EXPECTATIONS, ids.SAVINGS_CHG),
-        (ids.DIFF_LOG_CPI, ids.DIFF_LOG_EXPECTATIONS),
-        (ids.DIFF_LOG_CPI, ids.DIFF_LOG_REAL_NONDURABLES),
-        (ids.DIFF_LOG_CPI, ids.DIFF_LOG_REAL_DURABLES),
-        (ids.DIFF_LOG_CPI, ids.DIFF_LOG_REAL_SAVINGS),
-        (ids.EXPECTATIONS, ids.DIFF_LOG_NONDURABLES),
-        (ids.EXPECTATIONS, ids.DIFF_LOG_DURABLES),
-        (ids.EXPECTATIONS, ids.DIFF_LOG_SAVINGS),
-        (ids.EXPECTATIONS, ids.DIFF_LOG_REAL_NONDURABLES),
-        (ids.EXPECTATIONS, ids.DIFF_LOG_REAL_DURABLES),
-        (ids.EXPECTATIONS, ids.DIFF_LOG_REAL_SAVINGS),
-        (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_NONDURABLES),
-        (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_DURABLES),
-        (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_SAVINGS),
-        (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_REAL_NONDURABLES),
-        (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_REAL_DURABLES),
-        (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_REAL_SAVINGS),
+        # (ids.EXPECTATIONS, ids.NONDURABLES_CHG),
+        # (ids.EXPECTATIONS, ids.DURABLES_CHG),
+        # (ids.EXPECTATIONS, ids.SAVINGS_CHG),
+        # (ids.DIFF_LOG_CPI, ids.DIFF_LOG_EXPECTATIONS),
+        # (ids.DIFF_LOG_CPI, ids.DIFF_LOG_REAL_NONDURABLES),
+        # (ids.DIFF_LOG_CPI, ids.DIFF_LOG_REAL_DURABLES),
+        # (ids.DIFF_LOG_CPI, ids.DIFF_LOG_REAL_SAVINGS),
+        # (ids.EXPECTATIONS, ids.DIFF_LOG_NONDURABLES),
+        # (ids.EXPECTATIONS, ids.DIFF_LOG_DURABLES),
+        # (ids.EXPECTATIONS, ids.DIFF_LOG_SAVINGS),
+        # (ids.EXPECTATIONS, ids.DIFF_LOG_REAL_NONDURABLES),
+        # (ids.EXPECTATIONS, ids.DIFF_LOG_REAL_DURABLES),
+        # (ids.EXPECTATIONS, ids.DIFF_LOG_REAL_SAVINGS),
+        # (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_NONDURABLES),
+        # (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_DURABLES),
+        # (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_SAVINGS),
+        # (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_REAL_NONDURABLES),
+        # (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_REAL_DURABLES),
+        # (ids.DIFF_LOG_EXPECTATIONS, ids.DIFF_LOG_REAL_SAVINGS),
     ]
 
     series_titles = {
@@ -296,12 +296,6 @@ def main() -> None:
         ids.DIFF_LOG_REAL_NONDURABLES: "Real nondurables consumption (diff in log)",
         ids.DIFF_LOG_REAL_DURABLES: "Real durables consumption (diff in log)",
         ids.DIFF_LOG_REAL_SAVINGS: "Real savings (diff in log)",
-        # # # # ids.NONDURABLES,
-        # # # # ids.DURABLES,
-        # # # ids.SAVINGS,
-        # # # ids.REAL_NONDURABLES,
-        # # # ids.REAL_DURABLES,
-        # # # ids.REAL_SAVINGS,
     }
     ## Pre-process data
     # US data
@@ -328,73 +322,73 @@ def main() -> None:
     inf_exp, _, _ = retrieve_data.clean_fed_data(raw_data)
     inf_exp.rename(columns={"value": ids.EXPECTATIONS}, inplace=True)
 
-    # * Non-durables consumption, monthly
-    raw_data = retrieve_data.get_fed_data(
-        ids.US_NONDURABLES_CONSUMPTION,
-    )
-    nondur_consump, _, _ = retrieve_data.clean_fed_data(raw_data)
-    nondur_consump.rename(columns={"value": ids.NONDURABLES}, inplace=True)
+    # # * Non-durables consumption, monthly
+    # raw_data = retrieve_data.get_fed_data(
+    #     ids.US_NONDURABLES_CONSUMPTION,
+    # )
+    # nondur_consump, _, _ = retrieve_data.clean_fed_data(raw_data)
+    # nondur_consump.rename(columns={"value": ids.NONDURABLES}, inplace=True)
 
-    # * Durables consumption, monthly
-    raw_data = retrieve_data.get_fed_data(
-        ids.US_DURABLES_CONSUMPTION,
-    )
-    dur_consump, _, _ = retrieve_data.clean_fed_data(raw_data)
-    dur_consump.rename(columns={"value": ids.DURABLES}, inplace=True)
+    # # * Durables consumption, monthly
+    # raw_data = retrieve_data.get_fed_data(
+    #     ids.US_DURABLES_CONSUMPTION,
+    # )
+    # dur_consump, _, _ = retrieve_data.clean_fed_data(raw_data)
+    # dur_consump.rename(columns={"value": ids.DURABLES}, inplace=True)
 
-    # * Non-durables consumption change, monthly
-    raw_data = retrieve_data.get_fed_data(
-        ids.US_NONDURABLES_CONSUMPTION,
-        units="pc1",
-        freq="m",
-    )
-    nondur_consump_chg, _, _ = retrieve_data.clean_fed_data(raw_data)
-    nondur_consump_chg.rename(columns={"value": ids.NONDURABLES_CHG}, inplace=True)
+    # # * Non-durables consumption change, monthly
+    # raw_data = retrieve_data.get_fed_data(
+    #     ids.US_NONDURABLES_CONSUMPTION,
+    #     units="pc1",
+    #     freq="m",
+    # )
+    # nondur_consump_chg, _, _ = retrieve_data.clean_fed_data(raw_data)
+    # nondur_consump_chg.rename(columns={"value": ids.NONDURABLES_CHG}, inplace=True)
 
-    # * Durables consumption change, monthly
-    raw_data = retrieve_data.get_fed_data(
-        ids.US_DURABLES_CONSUMPTION,
-        units="pc1",
-        freq="m",
-    )
-    dur_consump_chg, _, _ = retrieve_data.clean_fed_data(raw_data)
-    dur_consump_chg.rename(columns={"value": ids.DURABLES_CHG}, inplace=True)
+    # # * Durables consumption change, monthly
+    # raw_data = retrieve_data.get_fed_data(
+    #     ids.US_DURABLES_CONSUMPTION,
+    #     units="pc1",
+    #     freq="m",
+    # )
+    # dur_consump_chg, _, _ = retrieve_data.clean_fed_data(raw_data)
+    # dur_consump_chg.rename(columns={"value": ids.DURABLES_CHG}, inplace=True)
 
-    # * Personal savings
-    raw_data = retrieve_data.get_fed_data(
-        ids.US_SAVINGS,
-    )
-    save, _, _ = retrieve_data.clean_fed_data(raw_data)
-    save.rename(columns={"value": ids.SAVINGS}, inplace=True)
+    # # * Personal savings
+    # raw_data = retrieve_data.get_fed_data(
+    #     ids.US_SAVINGS,
+    # )
+    # save, _, _ = retrieve_data.clean_fed_data(raw_data)
+    # save.rename(columns={"value": ids.SAVINGS}, inplace=True)
 
-    # * Personal savings change
-    raw_data = retrieve_data.get_fed_data(
-        ids.US_SAVINGS,
-        units="pc1",
-        freq="m",
-    )
-    save_chg, _, _ = retrieve_data.clean_fed_data(raw_data)
-    save_chg.rename(columns={"value": ids.SAVINGS_CHG}, inplace=True)
+    # # * Personal savings change
+    # raw_data = retrieve_data.get_fed_data(
+    #     ids.US_SAVINGS,
+    #     units="pc1",
+    #     freq="m",
+    # )
+    # save_chg, _, _ = retrieve_data.clean_fed_data(raw_data)
+    # save_chg.rename(columns={"value": ids.SAVINGS_CHG}, inplace=True)
 
-    # * Personal savings rate
-    raw_data = retrieve_data.get_fed_data(
-        ids.US_SAVINGS_RATE,
-    )
-    save_rate, _, _ = retrieve_data.clean_fed_data(raw_data)
-    save_rate.rename(columns={"value": ids.SAVINGS_RATE}, inplace=True)
+    # # * Personal savings rate
+    # raw_data = retrieve_data.get_fed_data(
+    #     ids.US_SAVINGS_RATE,
+    # )
+    # save_rate, _, _ = retrieve_data.clean_fed_data(raw_data)
+    # save_rate.rename(columns={"value": ids.SAVINGS_RATE}, inplace=True)
 
     # * Merge dataframes to align dates and remove extras
     dataframes = [
         cpi,
         measured_inf,
         inf_exp,
-        nondur_consump,
-        nondur_consump_chg,
-        dur_consump,
-        dur_consump_chg,
-        save,
-        save_chg,
-        save_rate,
+        # nondur_consump,
+        # nondur_consump_chg,
+        # dur_consump,
+        # dur_consump_chg,
+        # save,
+        # save_chg,
+        # save_rate,
     ]
     us_data = helpers.combine_series(dataframes, on=[ids.DATE], how="left")
     us_data = us_data[us_data["date"] <= pd.to_datetime(results_configs.END_DATE)]
@@ -410,23 +404,23 @@ def main() -> None:
             us_data[ids.DATE] == pd.Timestamp(results_configs.CONSTANT_DOLLAR_DATE)
         ][ids.CPI].iat[0],
     )
-    us_data = helpers.add_real_value_columns(
-        data=us_data,
-        nominal_columns=[ids.NONDURABLES, ids.DURABLES, ids.SAVINGS],
-        cpi_column=ids.CPI,
-        constant_date=results_configs.CONSTANT_DOLLAR_DATE,
-    )
+    # us_data = helpers.add_real_value_columns(
+    #     data=us_data,
+    #     nominal_columns=[ids.NONDURABLES, ids.DURABLES, ids.SAVINGS],
+    #     cpi_column=ids.CPI,
+    #     constant_date=results_configs.CONSTANT_DOLLAR_DATE,
+    # )
     us_data = helpers.calculate_diff_in_log(
         data=us_data,
         columns=[
             ids.CPI,
             ids.EXPECTATIONS,
-            ids.NONDURABLES,
-            ids.DURABLES,
-            ids.SAVINGS,
-            ids.REAL_NONDURABLES,
-            ids.REAL_DURABLES,
-            ids.REAL_SAVINGS,
+            # ids.NONDURABLES,
+            # ids.DURABLES,
+            # ids.SAVINGS,
+            # ids.REAL_NONDURABLES,
+            # ids.REAL_DURABLES,
+            # ids.REAL_SAVINGS,
         ],
     )
 
@@ -436,7 +430,9 @@ def main() -> None:
     )
     logger.debug("df shape %s", measured_inf.shape)
 
-    for comp in series_comparisons[1:4] + series_comparisons[14:]:
+    for (
+        comp
+    ) in series_comparisons:  # series_comparisons[1:4] + series_comparisons[14:]:
 
         logger.debug(comp)
 
@@ -557,12 +553,7 @@ def main() -> None:
         axs.set_title(f"{series_titles[comp[0]]} X {series_titles[comp[1]]}", size=16)
         axs.set_ylabel("Period (years)", size=14)
 
-        # ! Export plot
-        parent_dir = Path(__file__).parents[1]
-        export_file = parent_dir / "results" / f"xwt_module_{comp[0]}_{comp[1]}.png"
-        plt.savefig(export_file, bbox_inches="tight")
-
-        # plt.show()
+        plt.show()
 
 
 if __name__ == "__main__":

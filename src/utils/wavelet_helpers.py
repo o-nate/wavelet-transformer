@@ -1,7 +1,5 @@
 """Helper functions for wavelet transforms"""
 
-from typing import List
-
 import numpy as np
 import numpy.typing as npt
 import matplotlib.pyplot as plt
@@ -85,7 +83,7 @@ def plot_signficance_levels(
     signficance_levels: npt.NDArray,
     t_values: npt.NDArray,
     period: npt.NDArray,
-    **kwargs
+    **kwargs,
 ) -> None:
     """Plot contours for 95% significance level\n
     **kwargs**\n
@@ -107,11 +105,11 @@ def plot_cone_of_influence(
     ax: plt.Axes,
     coi: npt.NDArray,
     t_values: npt.NDArray,
-    levels: List[float],
+    levels: list[float],
     period: npt.NDArray,
     dt: float,
     tranform_type: str,
-    **kwargs
+    **kwargs,
 ) -> None:
     """Plot shaded area for cone of influence, where edge effects may occur\n
     **Params**\n
