@@ -166,7 +166,7 @@ def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
     results_from_xwt = xwt.run_xwt(xwt_data, ignore_strong_trends=True)
 
     # * Plot XWT power spectrum
-    _, axs = plt.subplots(1, 1, figsize=(10, 8), sharex=True)
+    fig, axs = plt.subplots(1, 1, figsize=(10, 8), sharex=True)
 
     xwt.plot_xwt(
         axs,
@@ -200,3 +200,5 @@ def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
 
     axs.set_title(f"{series_names[0]} X {series_names[1]}", size=16)
     axs.set_ylabel("Period (years)", size=14)
+
+    st.pyplot(fig)
