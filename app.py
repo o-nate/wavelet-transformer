@@ -9,7 +9,7 @@ from plotly import tools
 from constants import ids, results_configs
 from utils.logging_config import get_logger
 
-from src import dwt
+from src import dwt, wavelet_plots
 
 from src.utils.file_helpers import load_file
 from src.utils.helpers import adjust_sidebar, combine_series
@@ -22,16 +22,13 @@ logger = get_logger(__name__)
 st.title("Wavelet Analysis Interactive Dashboard")
 
 # Add sidebar for controlling parameters
-add_selectbox = st.sidebar.selectbox(
+transform_selection = st.sidebar.selectbox(
     "**Select a wavelet transform**",
-    (ids.DWT, ids.CWT, ids.XWT),
+    (ids.CWT, ids.DWT, ids.XWT),
     key="wavelet_selection",
 )
-logger.debug(type(add_selectbox))
-dwt_plot_selection = adjust_sidebar(add_selectbox)
-logger.debug(dwt_plot_selection)
+dwt_plot_selection = adjust_sidebar(transform_selection)
 dwt_smooth_plot_order = adjust_sidebar(dwt_plot_selection)
-logger.debug(dwt_smooth_plot_order)
 
 # File uploader
 uploaded_files = st.file_uploader(
@@ -66,88 +63,25 @@ if uploaded_files:
 
     logger.debug("combined df columns: %s", combined_dfs.columns.to_list())
 
-    dwt_dict = create_dwt_dict(
-        combined_dfs.dropna(),
-        column_names,
-        mother_wavelet=results_configs.DWT_MOTHER_WAVELET,
-    )
-
-    # * Run DWTs
-    dwt_results_dict = create_dwt_results_dict(dwt_dict, column_names)
-
-    st.write(f"Showing DWT of: {', '.join(dwt_dict.keys())}")
-
-    # Frequency decomposition plot
-    t = combined_dfs.dropna().index
-    if dwt_plot_selection == ids.DECOMPOSE:
-        fig = plot_dwt_decomposition_for(
-            dwt_results_dict,
-            t,
-            wavelet=results_configs.DWT_MOTHER_WAVELET,
-            figsize=(15, 20),
-            sharex=True,
+    if transform_selection == ids.DWT:
+        wavelet_plots.plot_dwt(
+            combined_dfs, column_names, dwt_plot_selection, dwt_smooth_plot_order
         )
-        plt.legend("", frameon=False)
 
-        # Display plot
-        st.plotly_chart(fig)
+    if transform_selection == ids.CWT and len(column_names) == 1:
+        wavelet_plots.plot_cwt(combined_dfs, column_names)
 
-    if dwt_plot_selection == ids.SMOOTH:
-        if dwt_smooth_plot_order == ids.ASCEND:
-            ASCENDING = True
-        else:
-            ASCENDING = False
-        if len(dwt_results_dict) == 1:
-            fig = plot_dwt_smoothing_for(
-                dwt_dict,
-                dwt_results_dict,
-                t,
-                ascending=ASCENDING,
-                figsize=(15, 20),
-                sharex=True,
-            )
-            plt.legend("", frameon=False)
+    if transform_selection == ids.CWT and len(column_names) == 2:
+        st.write("Looks like you're looking for the _cross-wavelet transform_")
+        wavelet_plots.plot_xwt(combined_dfs, column_names)
 
-            # Display plot
-            st.plotly_chart(fig)
-        elif len(dwt_results_dict) == 2:
-            col1, col2 = st.columns(2)
-            with col1:
-                dwt_results_dict[column_names[0]].smooth_signal(
-                    y_values=dwt_dict[column_names[0]].y_values,
-                    mother_wavelet=dwt_dict[column_names[0]].mother_wavelet,
-                )
-                fig1 = dwt.plot_smoothing(
-                    dwt_results_dict[column_names[0]].smoothed_signal_dict,
-                    t,
-                    dwt_dict[column_names[0]].y_values,
-                    ascending=ASCENDING,
-                    figsize=(15, 20),
-                    sharex=True,
-                )
+    if transform_selection == ids.XWT and len(column_names) == 2:
+        wavelet_plots.plot_xwt(combined_dfs, column_names)
 
-                # Display plot
-                # fig1.layout.update(width=600, height=600)
-                st.plotly_chart(fig1, use_container_width=True)
+    if transform_selection == ids.XWT and len(column_names) < 2:
+        st.write("Please supply a second series.")
 
-            with col2:
-                dwt_results_dict[column_names[1]].smooth_signal(
-                    y_values=dwt_dict[column_names[1]].y_values,
-                    mother_wavelet=dwt_dict[column_names[1]].mother_wavelet,
-                )
-                fig2 = dwt.plot_smoothing(
-                    dwt_results_dict[column_names[1]].smoothed_signal_dict,
-                    t,
-                    dwt_dict[column_names[1]].y_values,
-                    ascending=ASCENDING,
-                    figsize=(15, 20),
-                    sharex=True,
-                )
-
-                # Display plot
-                # fig2.layout.update(width=600, height=600)
-                st.plotly_chart(fig2, use_container_width=True)
-        plt.legend("", frameon=False)
+    plt.legend("", frameon=False)
 
 else:
     st.write("Upload a spreadsheet file to begin.")
