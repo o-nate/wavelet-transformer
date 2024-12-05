@@ -93,12 +93,15 @@ def get_fed_data(series: str, no_headers: bool = True, **kwargs) -> str:
         return None
 
 
-def clean_fed_data(json_data: str) -> tuple[pd.DataFrame, npt.NDArray, npt.NDArray]:
+def clean_fed_data(
+    json_data: str, show_info: bool = False
+) -> tuple[pd.DataFrame, npt.NDArray, npt.NDArray]:
     """Convert Fed data to time and endogenous variables (t, y)"""
 
     ## Convert to dataframe
     df = pd.DataFrame(json_data)
-    print(df.info(verbose=True), "\n")
+    if show_info:
+        print(df.info(verbose=True), "\n")
 
     ## Convert dtypes
     df.replace(".", np.nan, inplace=True)
