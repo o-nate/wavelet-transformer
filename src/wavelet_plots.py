@@ -16,7 +16,11 @@ from src import cwt, dwt, xwt
 
 from src.utils.file_helpers import load_file
 from src.utils.helpers import adjust_sidebar, combine_series
-from src.utils.plot_helpers import plot_dwt_decomposition_for, plot_dwt_smoothing_for
+from src.utils.plot_helpers import (
+    plot_dwt_decomposition_for,
+    plot_dwt_smoothing_for,
+    set_x_ticks,
+)
 from src.utils.transform_helpers import (
     create_cwt_dict,
     create_cwt_results_dict,
@@ -163,7 +167,7 @@ def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
         levels=results_configs.LEVELS,
     )
 
-    results_from_xwt = xwt.run_xwt(xwt_data, ignore_strong_trends=True)
+    results_from_xwt = xwt.run_xwt(xwt_data)
 
     # * Plot XWT power spectrum
     fig, axs = plt.subplots(1, 1, figsize=(10, 8), sharex=True)
@@ -189,12 +193,7 @@ def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
     axs.set_yticklabels(y_ticks, size=12)
 
     # * Set x axis tick labels
-    x_dates = [t[0]] + [t[i + 99] for i in range(0, 500, 100)]
-    x_ticks = [str(date.year) for date in x_dates]
-    x_tick_positions = [i for i in range(0, 600, 100)]
-    logger.debug("dates %s", x_ticks)
-    logger.debug("dates %s", x_tick_positions)
-    logger.debug("dates len %s", len(x_ticks))
+    x_tick_positions, x_ticks = set_x_ticks(t)
     axs.set_xticks(x_tick_positions)
     axs.set_xticklabels(x_ticks, size=12)
 

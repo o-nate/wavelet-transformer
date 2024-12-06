@@ -1,11 +1,15 @@
 """For plotting transforms"""
 
+import math
+
 from typing import Any
 
 import matplotlib.pyplot as plt
+import numpy as np
 import numpy.typing as npt
 
 from matplotlib.figure import Figure
+from pandas._libs.tslibs.timestamps import Timestamp
 
 from src import cwt, dwt, regression, xwt
 
@@ -67,23 +71,6 @@ def plot_dwt_smoothing_for(
     **kwargs
 ) -> Figure:
     comparison = list(transform_results_dict.keys())
-    # if len(transform_results_dict) == 2:
-    #     logger.debug("len == 2")
-    #     pass
-    #     fig_size = kwargs["figsize"]
-    #     fig, axs = plt.subplots(2, 1, figsize=fig_size)
-    #     for dwt_data, dwt_result, ax in zip(
-    #         transform_dict.values(), transform_results_dict.values(), axs
-    #     ):
-    #         dwt.plot_smoothing(
-    #             dwt_result.smoothed_signal_dict,
-    #             time_array,
-    #             dwt_data.y_values,
-    #             ascending=ascending,
-    #             ax=ax,
-    #             sharex=True,
-    #         )
-    #     return fig
     if len(transform_results_dict) == 1:
         transform_results_dict[comparison[0]].smooth_signal(
             y_values=transform_dict[comparison[0]].y_values,
@@ -94,6 +81,57 @@ def plot_dwt_smoothing_for(
             time_array,
             transform_dict[comparison[0]].y_values,
             ascending=ascending,
-            figsize=(15, 20),
-            sharex=True,
+            **kwargs
         )
+
+
+def round_down(x: float | int, n: int) -> int:
+    """Round down to nearest value at same magnitude
+
+    Args:
+        x (float | int): Value to round down
+        n (int): Magnitude (10**n)
+
+    Returns:
+        int: Value rounded down
+    """
+    return x if x % 10**n == 0 else x - x % 10**n
+
+
+def round_up(x: float | int, n: int) -> int:
+    """Round up to nearest value at same magnitude
+
+    Args:
+        x (float | int): Value to round up
+        n (int): Magnitude (10**n)
+
+    Returns:
+        int: Value rounded up
+    """
+    return x if x % 10**n == 0 else x + 10**n - x % 10**n
+
+
+def set_x_ticks(data: list[Timestamp]) -> tuple[list[int], list[str]]:
+    """Generate ticks and tick positions for x axis of XWT power spectrum
+
+    Args:
+        data (list[Timestamp]): Time data
+
+    Returns:
+        tuple[list[int], list[str]]: Tuple of lists of positions and labels
+    """
+    magnitude = np.log10(len(data))
+    magnitude = int(math.floor(magnitude))
+    divisor = 10**magnitude
+    divisor = int(divisor)
+    adjust_series_length = round_down(len(data), magnitude)
+    max_adjust_series_length = round_up(len(data), magnitude)
+
+    x_dates = [data[0]] + [
+        data[i + 99] for i in range(0, adjust_series_length, divisor)
+    ]
+    x_ticks = [str(date.year) for date in x_dates]
+
+    x_tick_positions = list(range(0, max_adjust_series_length, divisor))
+
+    return x_tick_positions, x_ticks
