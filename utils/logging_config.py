@@ -4,7 +4,7 @@ import logging
 import logging.config
 import os
 from datetime import datetime
-from typing import Type
+from typing import Optional, Type
 import warnings
 
 LOG_DIR = "logs"
@@ -73,20 +73,37 @@ os.makedirs(LOG_DIR, exist_ok=True)
 logging.config.dictConfig(LOGGING_CONFIG)
 
 
-def suppress_matplotlib_warnings() -> None:
-    """Additional method to suppress matplotlib warnings
+def suppress_third_party_warnings(
+    libraries: list[str], warning_categories: Optional[list[type]] = None
+) -> None:
+    """Suppress warnings and set logging level for specified third party libraries.
+
+    Args:
+        libraries: List of library names to suppress logging for
+        warning_categories: Optional list of warning categories to suppress.
+            Defaults to [UserWarning, RuntimeWarning] if None provided.
 
     Returns:
-        None:
+        None
+
+    Example:
+        >>> suppress_third_party_warnings(
+        ...     libraries=['matplotlib', 'pandas'],
+        ...     warning_categories=[UserWarning, RuntimeWarning, DeprecationWarning]
+        ... )
     """
-    # Suppress specific matplotlib warnings
+    # Set default warning categories if none provided
+    if warning_categories is None:
+        warning_categories = [UserWarning, RuntimeWarning]
 
-    warnings.filterwarnings("ignore", category=UserWarning)
-    warnings.filterwarnings("ignore", category=RuntimeWarning)
+    # Suppress specified warning categories
+    for category in warning_categories:
+        warnings.filterwarnings("ignore", category=category)
 
-    # Set matplotlib logging to critical to minimize output
-    mpl_logger = logging.getLogger("matplotlib")
-    mpl_logger.setLevel(logging.CRITICAL)
+    # Set logging level to CRITICAL for all specified libraries
+    for library in libraries:
+        logger = logging.getLogger(library)
+        logger.setLevel(logging.CRITICAL)
 
 
 def get_logger(name: str) -> Type[logging.Logger]:
@@ -102,4 +119,4 @@ def get_logger(name: str) -> Type[logging.Logger]:
 
 
 # Suppress warnings on import
-suppress_matplotlib_warnings()
+suppress_third_party_warnings(libraries=["matplotlib", "PIL"])
