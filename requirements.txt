@@ -49,8 +49,8 @@ matplotlib-inline==0.1.6
 matplotlib-scalebar==0.8.1
 mdurl==0.1.2
 mkl-fft
-mkl-random==1.2.2
-mkl-service==2.4.0
+mkl-random
+mkl-service
 munkres==1.1.4
 narwhals==1.14.1
 nest_asyncio==1.6.0
