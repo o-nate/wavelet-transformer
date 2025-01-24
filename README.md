@@ -10,7 +10,7 @@ Normally, we would use a [Fourier transform](https://en.wikipedia.org/wiki/Fouri
 
 <i>Through wavelet analysis, we can map how this fingerprint changes over time.</i>
 
-![Example Fourier transform showing how simple cyclical functions can be identified in complex series](https://drive.google.com/uc?export=view&id=1sLj-vkNWcZBCWqG2aBdggVpgwgjAZwGW) "Example Fourier transform")
+![Example Fourier transform showing how simple cyclical functions can be identified in complex series](https://drive.google.com/uc?export=view&id=1sLj-vkNWcZBCWqG2aBdggVpgwgjAZwGW "Example Fourier transform")
 
 ![Example wavelet analysis showing how the composition of cyclical functions in a nonstationary time series changes over time](https://upload.wikimedia.org/wikipedia/commons/9/95/Continuous_wavelet_transform.gif "Example wavelet analysis")
 
