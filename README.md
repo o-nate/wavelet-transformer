@@ -3,6 +3,17 @@ This provides an easy-to-use interface for anyone to test out wavelet analysis o
 
 <i>Note: This version is still a prototype and quite brittle. Please, let me know what bugs, errors, etc. arise for you when using.</i>
 
+## What is wavelet analysis?
+[Wavelet](https://en.wikipedia.org/wiki/Wavelet) analysis allows us to explore the cyclical nature of time series, essentially extracting three dimensions of information from an otherwise one-dimensional dataset. Through the different wavelet transforms (continuous, CWT; cross-wavelet, XWT; and discrete, DWT), we can uncover and quantify patterns in the data that are imperceptible.
+
+Normally, we would use a [Fourier transform](https://en.wikipedia.org/wiki/Fourier_transform) to identify the underlying cycles in a complex series, like in the image below. Effectively, the Fourier transform provides us a "fingerprint" of the underlying cyclical functions that produce the complex series in the aggregate. But, this only works for stationary data. In the case of nonstationary data, this fingerprints changes over time.
+
+<i>Through wavelet analysis, we can map how this fingerprint changes over time.</i>
+
+![Example Fourier transform showing how simple cyclical functions can be identified in complex series](https://drive.google.com/file/d/1sLj-vkNWcZBCWqG2aBdggVpgwgjAZwGW/view?usp=drive_link "Example Fourier transform")
+
+![Example wavelet analysis showing how the composition of cyclical functions in a nonstationary time series changes over time](https://upload.wikimedia.org/wikipedia/commons/9/95/Continuous_wavelet_transform.gif "Example wavelet analysis")
+
 ## Setting up the environment
 To create a virtual environment using `conda`, use:
 ```
