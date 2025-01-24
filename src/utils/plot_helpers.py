@@ -16,6 +16,7 @@ from src import cwt, dwt, regression, xwt
 from src.cwt import DataForCWT, ResultsFromCWT
 from src.dwt import DataForDWT, ResultsFromDWT
 from src.utils import wavelet_helpers
+from src.utils.config import XWT_X_TICK_NUMBERS
 from src.xwt import DataForXWT, ResultsFromXWT
 
 from utils.logging_config import get_logger
@@ -48,7 +49,7 @@ def plot_dwt_decomposition_for(
             b_coeffs=transform_results_dict[comparison[1]].coeffs,
             time=time_array,
             levels=transform_results_dict[comparison[0]].levels,
-            **kwargs
+            **kwargs,
         )
     elif len(transform_results_dict) == 1:
         return dwt.plot_components(
@@ -56,7 +57,7 @@ def plot_dwt_decomposition_for(
             coeffs=transform_results_dict[comparison[0]].coeffs,
             time=time_array,
             levels=transform_results_dict[comparison[0]].levels,
-            **kwargs
+            **kwargs,
         )
     else:
         logger.error("Too many series provided (maximum of two permitted)")
@@ -68,7 +69,7 @@ def plot_dwt_smoothing_for(
     transform_results_dict: dict[str, ResultsFromDWT],
     time_array: npt.NDArray,
     ascending: bool = True,
-    **kwargs
+    **kwargs,
 ) -> Figure:
     comparison = list(transform_results_dict.keys())
     if len(transform_results_dict) == 1:
@@ -81,7 +82,7 @@ def plot_dwt_smoothing_for(
             time_array,
             transform_dict[comparison[0]].y_values,
             ascending=ascending,
-            **kwargs
+            **kwargs,
         )
 
 
@@ -112,26 +113,19 @@ def round_up(x: float | int, n: int) -> int:
 
 
 def set_x_ticks(data: list[Timestamp]) -> tuple[list[int], list[str]]:
-    """Generate ticks and tick positions for x axis of XWT power spectrum
+    """Generate ticks and tick positions for x axis"""
+    logger.debug("dates: %s", data)
+    if len(data) <= XWT_X_TICK_NUMBERS:
+        return list(range(len(data))), [f"{date.month}/{date.year}" for date in data]
 
-    Args:
-        data (list[Timestamp]): Time data
-
-    Returns:
-        tuple[list[int], list[str]]: Tuple of lists of positions and labels
-    """
-    magnitude = np.log10(len(data))
-    magnitude = int(math.floor(magnitude))
-    divisor = 10**magnitude
-    divisor = int(divisor)
-    adjust_series_length = round_down(len(data), magnitude)
-    max_adjust_series_length = round_up(len(data), magnitude)
+    # Calculate step size to get around pre-defined number of ticks
+    step = max(1, len(data) // XWT_X_TICK_NUMBERS)
 
     x_dates = [data[0]] + [
-        data[i + 99] for i in range(0, adjust_series_length, divisor)
+        data[i] for i in range(step, len(data), step) if i < len(data)
     ]
-    x_ticks = [str(date.year) for date in x_dates]
 
-    x_tick_positions = list(range(0, max_adjust_series_length, divisor))
+    x_ticks = [f"{date.month}/{date.year}" for date in x_dates]
+    x_tick_positions = [data.index(date) for date in x_dates]
 
     return x_tick_positions, x_ticks
