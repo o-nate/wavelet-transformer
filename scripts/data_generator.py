@@ -16,8 +16,8 @@ logger = get_logger(__name__)
 parent_directory = Path(__file__).parents[1]
 export_directory = parent_directory / "data"
 
-DATA_REQUESTED = "CPALTT01BRM659N"
-FILE_NAME = "brazil_inflation"
+DATA_REQUESTED = ids.US_DURABLES_CONSUMPTION
+FILE_NAME = "durables"
 
 # %% [markdown]
 # Retrieve data via API
