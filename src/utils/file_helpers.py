@@ -8,6 +8,7 @@ import streamlit as st
 
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
+from src.utils.config import INDEX_COLUMN_NAME
 from utils.logging_config import get_logger
 
 # * Logging settings
@@ -139,6 +140,9 @@ def load_file(file_to_load: Type[UploadedFile]) -> pd.DataFrame:
     """
     try:
         df_from_file = convert_to_dataframe(file_to_load)
+
+        # * Set index to specific name to make all conform
+        df_from_file.index.name = INDEX_COLUMN_NAME
 
         # Validate DataFrame to make sure columns contain appropriate values
         validate_datetime, datetime_result_message = validate_datetime_index_of(
