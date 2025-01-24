@@ -129,7 +129,7 @@ def plot_cwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
         levels=results_configs.LEVELS,
     )
 
-    results_from_cwt = cwt.run_cwt(data_for_cwt, normalize=True)
+    results_from_cwt = cwt.run_cwt(data_for_cwt, standardize=True)
 
     # * Plot results
     plt.close("all")
@@ -434,7 +434,7 @@ def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
     t = data_no_nans.index.to_list()
     y1 = data_no_nans[series_names[0]].to_numpy()
     y2 = data_no_nans[series_names[1]].to_numpy()
-    y1 = standardize_series(y1, detrend=False, remove_mean=True)
+    y1 = standardize_series(y1, detrend=True, remove_mean=False)
     y2 = standardize_series(y2, detrend=True, remove_mean=False)
 
     xwt_data = xwt.DataForXWT(
