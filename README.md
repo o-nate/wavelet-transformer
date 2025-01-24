@@ -8,11 +8,13 @@ This provides an easy-to-use interface for anyone to test out wavelet analysis o
 
 Normally, we would use a [Fourier transform](https://en.wikipedia.org/wiki/Fourier_transform) to identify the underlying cycles in a complex series, like in the image below. Effectively, the Fourier transform provides us a "fingerprint" of the underlying cyclical functions that produce the complex series in the aggregate. But, this only works for stationary data. In the case of nonstationary data, this fingerprints changes over time.
 
-<i>Through wavelet analysis, we can map how this fingerprint changes over time.</i>
+<i>Through a (continuous) wavelet transform, we can map how this fingerprint changes over time.</i>
 
+### Example Fourier transform
 ![Example Fourier transform showing how simple cyclical functions can be identified in complex series](https://drive.google.com/uc?export=view&id=1sLj-vkNWcZBCWqG2aBdggVpgwgjAZwGW "Example Fourier transform")
 
-![Example wavelet analysis showing how the composition of cyclical functions in a nonstationary time series changes over time](https://upload.wikimedia.org/wikipedia/commons/9/95/Continuous_wavelet_transform.gif "Example wavelet analysis")
+### Example ontinous wavelet transform 
+![Example continous wavelet transform showing how the composition of cyclical functions in a nonstationary time series changes over time](https://upload.wikimedia.org/wikipedia/commons/9/95/Continuous_wavelet_transform.gif "Example ontinous wavelet transform")
 
 ## Setting up the environment
 To create a virtual environment using `conda`, use:
