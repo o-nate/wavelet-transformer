@@ -11,6 +11,7 @@ from utils.logging_config import get_logger
 
 from src import dwt, wavelet_plots
 
+from src.utils.config import INDEX_COLUMN_NAME
 from src.utils.file_helpers import load_file
 from src.utils.helpers import adjust_sidebar, combine_series
 from src.utils.plot_helpers import plot_dwt_decomposition_for, plot_dwt_smoothing_for
@@ -58,7 +59,7 @@ if uploaded_files:
     combined_dfs = combine_series(
         dict_of_combined_dataframes.values(),
         how="left",
-        on="date",
+        on=INDEX_COLUMN_NAME,
     )
 
     logger.debug("combined df columns: %s", combined_dfs.columns.to_list())
