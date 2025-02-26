@@ -1,6 +1,8 @@
 """Helper functions for handling data"""
 
-from typing import Type
+from typing import Union, Type
+from pathlib import Path
+import os
 
 import pandas as pd
 import openpyxl
@@ -13,6 +15,8 @@ from utils.logging_config import get_logger
 
 # * Logging settings
 logger = get_logger(__name__)
+
+SAMPLE_DATA_PATH = Path(__file__).parents[2] / "sample_data"
 
 
 def validate_datetime_index_of(data: pd.DataFrame) -> tuple[bool, str]:
@@ -101,36 +105,67 @@ def standardize_columns_with_file_name_for(
     return data
 
 
-def convert_to_dataframe(uploaded_file: Type[UploadedFile]) -> pd.DataFrame:
+def convert_to_dataframe(file_input: Union[UploadedFile, Path, str]) -> pd.DataFrame:
     """Read file based on type
 
     Args:
-        uploaded_file (Type[UploadedFile]): Uploaded file object
+        file_input: Can be a Streamlit UploadedFile, a Path object, or a string file path
 
     Returns:
         pd.DataFrame: DataFrame with columns `date` and `value`
     """
-    if uploaded_file.type == "text/csv":
-        logger.info("Successfully loaded CSV file: %s", uploaded_file.name)
+    # Determine file type and path
+    if hasattr(file_input, "type") and hasattr(
+        file_input, "name"
+    ):  # Streamlit UploadedFile
+        file_name = file_input.name
+        file_type = file_input.type
+        file_obj = file_input  # The file object itself
+    else:  # Path object or string
+        file_path = SAMPLE_DATA_PATH / file_input
+        logger.debug("file_path %s", file_path)
+        file_name = os.path.basename(file_path)
+        file_ext = os.path.splitext(file_path)[1].lower()
+
+        # Determine file type based on extension
+        if file_ext == ".csv":
+            file_type = "text/csv"
+        elif file_ext in [".xlsx", ".xls"]:
+            file_type = (
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+        else:
+            raise ValueError(f"Unsupported file extension: {file_ext}")
+
+        file_obj = file_path  # The file path as string or Path object
+
+    # Read file based on determined type
+    if "csv" in file_type:
+        logger.info("Successfully loaded CSV file: %s", file_name)
         return pd.read_csv(
-            uploaded_file,
+            file_obj,
             sep=None,
             parse_dates=[0],
             index_col=0,
         )
-    logger.info("Successfully loaded Excel file: %s", uploaded_file.name)
+    logger.info("Successfully loaded Excel file: %s", file_name)
     return pd.read_excel(
-        uploaded_file,
+        file_obj,
         parse_dates=[0],
         index_col=0,
     )
 
 
-def load_file(file_to_load: Type[UploadedFile]) -> pd.DataFrame:
+def load_file(file_to_load: Union[UploadedFile, Path, str]) -> pd.DataFrame:
     """Load data from uploaded file to dataframe with error handling and logging
 
+    This function handles different file types:
+    - streamlit.runtime.uploaded_file_manager.UploadedFile objects
+    - pathlib.Path objects
+    - string file paths
+
     Args:
-        file_to_load (Type[UploadedFile]):
+        file_to_load: Can be a Streamlit UploadedFile, a Path object, or a string file path
 
     Raises:
         ValueError: Invalid file format
@@ -139,7 +174,17 @@ def load_file(file_to_load: Type[UploadedFile]) -> pd.DataFrame:
         pd.DataFrame: Columns: 'date' and 'value'
     """
     try:
+        # Get file name based on type
+        if hasattr(file_to_load, "name"):  # Streamlit UploadedFile
+            file_name = file_to_load.name
+        elif isinstance(file_to_load, (str, Path)):  # Path object or string
+            file_name = os.path.basename(str(file_to_load))
+        else:
+            raise TypeError(f"Unsupported file type: {type(file_to_load)}")
+
+        logger.debug("file: %s", file_to_load)
         df_from_file = convert_to_dataframe(file_to_load)
+        logger.debug("df: %s", df_from_file)
 
         # * Set index to specific name to make all conform
         df_from_file.index.name = INDEX_COLUMN_NAME
@@ -162,18 +207,26 @@ def load_file(file_to_load: Type[UploadedFile]) -> pd.DataFrame:
             raise ValueError(numeric_result_message)
 
         df_from_file = standardize_columns_with_file_name_for(
-            df_from_file, file_name=file_to_load.name
+            df_from_file, file_name=file_name
         )
         logger.debug("df dtypes: %s", df_from_file.dtypes)
 
         return df_from_file
 
     except ValueError as ve:
-        logger.error("Validation error with file %s: %s", file_to_load.name, ve)
+        if hasattr(file_to_load, "name"):
+            file_name = file_to_load.name
+        else:
+            file_name = str(file_to_load)
+        logger.error("Validation error with file %s: %s", file_name, ve)
         st.error(f"Invalid file format: {ve}")
         return None
 
     except Exception as e:
-        logger.exception("Error loading file %s: %s", file_to_load.name, e)
+        if hasattr(file_to_load, "name"):
+            file_name = file_to_load.name
+        else:
+            file_name = str(file_to_load)
+        logger.exception("Error loading file %s: %s", file_name, e)
         st.error(f"An error occurred while loading the file: {e}")
         return None
