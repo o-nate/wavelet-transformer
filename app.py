@@ -1,5 +1,8 @@
 """Streamlit dashboard app"""
 
+from pathlib import Path
+import os
+
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import streamlit as st
@@ -20,7 +23,10 @@ from src.utils.transform_helpers import create_dwt_dict, create_dwt_results_dict
 # * Logging settings
 logger = get_logger(__name__)
 
-st.title("Wavelet Analysis Interactive Dashboard")
+st.title("Wavelet Transformer")
+st.text(
+    "This app allows you conduct wavelet analysis by applying the wavelet transform to data!"
+)
 
 # Add sidebar for controlling parameters
 transform_selection = st.sidebar.selectbox(
@@ -31,26 +37,58 @@ transform_selection = st.sidebar.selectbox(
 dwt_plot_selection = adjust_sidebar(transform_selection)
 dwt_smooth_plot_order = adjust_sidebar(dwt_plot_selection)
 
-# File uploader
-uploaded_files = st.file_uploader(
-    "Choose Excel or CSV files", type=["csv", "xlsx"], accept_multiple_files=True
+# Sample datasets
+selected_data = st.sidebar.multiselect(
+    "**Select a dataset**", ids.SAMPLE_DATA + ["I have my own!🤓"], max_selections=2
 )
 
-# Create dict to store file names with file objects
-file_dict = {
-    uploaded_file.name.split(".")[0]: uploaded_file for uploaded_file in uploaded_files
-}
+logger.debug("selected data: %s", selected_data)
 
-# Create list of column names based on file name to differentiate after merging the dataframes
-column_names = list(file_dict)
-logger.debug("column name: %s", column_names)
+# Initialize uploaded_files and file_dict
+uploaded_files = []
+file_dict = {}
+
+# Check if any sample data is selected
+if any(data in ids.SAMPLE_DATA for data in selected_data):
+    # Filter for only the sample data items
+    sample_data_items = [data for data in selected_data if data in ids.SAMPLE_DATA]
+    for dataset in sample_data_items:
+        file_path = ids.API_DICT[dataset]
+        # Handle both string paths and file objects
+        if isinstance(file_path, str):
+            # For string paths, use the filename as the key
+            key = os.path.basename(file_path).split(".")[0]
+            file_dict[key] = file_path
+        else:
+            # For file objects with a name attribute
+            key = file_path.name.split(".")[0]
+            file_dict[key] = file_path
+        uploaded_files.append(file_path)
+
+# File uploader - append to uploaded_files and file_dict if user has own data
+if "I have my own!🤓" in selected_data:
+    user_files = st.sidebar.file_uploader(
+        "Choose Excel or CSV files", type=["csv", "xlsx"], accept_multiple_files=True
+    )
+    if user_files:
+        for file in user_files:
+            key = file.name.split(".")[0]
+            file_dict[key] = file
+            uploaded_files.append(file)
+
+logger.debug("uploaded_files: %s", uploaded_files)
+logger.debug("file_dict keys: %s", list(file_dict.keys()))
 
 # Create plot
-if uploaded_files:
-    # TODO change to list now that file name is stored as column name
+if file_dict:
+    # Create list of column names based on file name to differentiate after merging the dataframes
+    column_names = list(file_dict.keys())
+    logger.debug("column names: %s", column_names)
+
+    # Load each file into a dataframe
     dict_of_combined_dataframes = {
-        column_name: load_file(uploaded_file)
-        for column_name, uploaded_file in zip(column_names, uploaded_files)
+        column_name: load_file(file_path)
+        for column_name, file_path in file_dict.items()
     }
     logger.debug(
         "dict_of_combined_dataframes keys: %s", list(dict_of_combined_dataframes)
@@ -85,8 +123,12 @@ if uploaded_files:
     plt.legend("", frameon=False)
 
 else:
-    st.write("Upload a spreadsheet file to begin.")
-    st.write(
-        """Please, ensure that each file has only two columns: 
-        the **date column on the left** and the **value column on the right**."""
-    )
+    st.subheader("How it works")
+    st.text("1.) Navigate to the left-hand sidebar.")
+    st.text("2.) Select a wavelet transform.")
+    st.text("3.) Select a sample dataset or upload your own!.")
+
+st.markdown(
+    """*Please note that this tool has been tested on a limited number of datasets so far. 
+        Please, [contact me](mailto:nathanielalawrence@gmail.com) if yours isn't working!*"""
+)

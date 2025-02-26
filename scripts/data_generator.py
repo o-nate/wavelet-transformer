@@ -16,13 +16,13 @@ logger = get_logger(__name__)
 parent_directory = Path(__file__).parents[1]
 export_directory = parent_directory / "data"
 
-DATA_REQUESTED = ids.US_DURABLES_CONSUMPTION
-FILE_NAME = "durables"
+DATA_REQUESTED = ids.US_SAVINGS
+FILE_NAME = "savings_chg"
 
 # %% [markdown]
 # Retrieve data via API
 
-raw_data = retrieve_data.get_fed_data(DATA_REQUESTED)
+raw_data = retrieve_data.get_fed_data(DATA_REQUESTED, units="pc1", freq="m")
 us_data, t, y = retrieve_data.clean_fed_data(raw_data)
 us_data.head()
 
