@@ -114,7 +114,6 @@ def round_up(x: float | int, n: int) -> int:
 
 def set_x_ticks(data: list[Timestamp]) -> tuple[list[int], list[str]]:
     """Generate ticks and tick positions for x axis"""
-    logger.debug("dates: %s", data)
     if len(data) <= XWT_X_TICK_NUMBERS:
         return list(range(len(data))), [f"{date.month}/{date.year}" for date in data]
 

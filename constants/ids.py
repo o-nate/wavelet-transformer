@@ -59,13 +59,13 @@ DIFF_LOG_REAL_DURABLES = f"diff_log_{REAL_DURABLES}"
 DIFF_LOG_REAL_SAVINGS = f"diff_log_{REAL_SAVINGS}"
 
 # * Display names
-# TODO create dict of display and column names for selectbox
 SAMPLE_DATA = [
     INFLATION,
     EXPECTATIONS,
     NONDURABLES_CHG,
     DURABLES_CHG,
     SAVINGS_RATE,
+    CPI,
 ]
 API_DICT = {name: f"{name}.csv" for name in SAMPLE_DATA}
 logger.debug("API_DICT: %s", API_DICT)

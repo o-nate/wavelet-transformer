@@ -9,16 +9,14 @@ import streamlit as st
 
 from plotly import tools
 
-from constants import ids, results_configs
+from constants import ids
 from utils.logging_config import get_logger
 
-from src import dwt, wavelet_plots
+from src import wavelet_plots
 
 from src.utils.config import INDEX_COLUMN_NAME
 from src.utils.file_helpers import load_file
-from src.utils.helpers import adjust_sidebar, combine_series
-from src.utils.plot_helpers import plot_dwt_decomposition_for, plot_dwt_smoothing_for
-from src.utils.transform_helpers import create_dwt_dict, create_dwt_results_dict
+from src.utils.helpers import adjust_sidebar, calculate_diff_in_log, combine_series
 
 # * Logging settings
 logger = get_logger(__name__)
@@ -102,22 +100,38 @@ if file_dict:
 
     logger.debug("combined df columns: %s", combined_dfs.columns.to_list())
 
-    if transform_selection == ids.DWT:
+    if transform_selection in (ids.CWT, ids.XWT) and all(
+        data in selected_data for data in [ids.INFLATION, ids.EXPECTATIONS]
+    ):
+        st.warning(
+            "Converting to diff in log of CPI inflation to avoid AR(1) upper-bound error."
+        )
+        df_cpi = load_file(ids.API_DICT[ids.CPI])
+        df_cpi = calculate_diff_in_log(df_cpi, [ids.CPI])
+        combined_dfs = combine_series(
+            [dict_of_combined_dataframes[ids.EXPECTATIONS], df_cpi],
+            how="left",
+            on=INDEX_COLUMN_NAME,
+        )
+        logger.debug("Columns: %s", combined_dfs.columns)
+        wavelet_plots.plot_xwt(combined_dfs, [ids.EXPECTATIONS, ids.DIFF_LOG_CPI])
+
+    elif transform_selection == ids.DWT:
         wavelet_plots.plot_dwt(
             combined_dfs, column_names, dwt_plot_selection, dwt_smooth_plot_order
         )
 
-    if transform_selection == ids.CWT and len(column_names) == 1:
+    elif transform_selection == ids.CWT and len(column_names) == 1:
         wavelet_plots.plot_cwt(combined_dfs, column_names)
 
-    if transform_selection == ids.CWT and len(column_names) == 2:
+    elif transform_selection == ids.CWT and len(column_names) == 2:
         st.write("Looks like you're looking for the _cross-wavelet transform_")
         wavelet_plots.plot_xwt(combined_dfs, column_names)
 
-    if transform_selection == ids.XWT and len(column_names) == 2:
+    elif transform_selection == ids.XWT and len(column_names) == 2:
         wavelet_plots.plot_xwt(combined_dfs, column_names)
 
-    if transform_selection == ids.XWT and len(column_names) < 2:
+    elif transform_selection == ids.XWT and len(column_names) < 2:
         st.write("Please supply a second series.")
 
     plt.legend("", frameon=False)
