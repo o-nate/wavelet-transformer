@@ -360,7 +360,7 @@ def main() -> None:
             levels=LEVELS,
         )
 
-        results_from_xwt = run_xwt(xwt_data, ignore_strong_trends=True)
+        results_from_xwt = run_xwt(xwt_data)
 
         # * Plot XWT power spectrum
         _, axs = plt.subplots(1, 1, figsize=(10, 8), sharex=True)
