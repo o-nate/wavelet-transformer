@@ -1,23 +1,15 @@
 """For plotting transforms"""
 
-import math
-
-from typing import Any
-
 import matplotlib.pyplot as plt
-import numpy as np
 import numpy.typing as npt
 
 from matplotlib.figure import Figure
 from pandas._libs.tslibs.timestamps import Timestamp
 
-from src import cwt, dwt, regression, xwt
+from src import dwt, regression
 
-from src.cwt import DataForCWT, ResultsFromCWT
 from src.dwt import DataForDWT, ResultsFromDWT
-from src.utils import wavelet_helpers
 from src.utils.config import XWT_X_TICK_NUMBERS
-from src.xwt import DataForXWT, ResultsFromXWT
 
 from utils.logging_config import get_logger
 

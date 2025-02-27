@@ -112,5 +112,5 @@ def adjust_sidebar(selection: str) -> str:
     if selection == ids.SMOOTH:
         return st.sidebar.radio(
             "",
-            (ids.ASCEND, ids.DESCEND),
+            (ids.DESCEND, ids.ASCEND),
         )

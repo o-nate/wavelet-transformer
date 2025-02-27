@@ -151,11 +151,12 @@ def plot_dwt(
     plot_order: str = ids.ASCEND,
 ) -> Figure:
     """
-    Performs Discrete Wavelet Transform (DWT) analysis on time series data and creates visualizations.
+    Performs Discrete Wavelet Transform (DWT) analysis on time series data and
+    creates visualizations.
 
-    This function supports both decomposition and smoothing visualization modes for either one or
-    two time series. When processing two series, smoothing plots are displayed side by side using
-    Streamlit columns.
+    This function supports both decomposition and smoothing visualization modes for
+    either one or two time series. When processing two series, smoothing plots
+    are displayed side by side using Streamlit columns.
 
     Parameters
     ----------
@@ -271,9 +272,9 @@ def plot_dwt(
             figsize=(15, 20),
             sharex=True,
         )
-        plt.legend("", frameon=False)
+        # plt.legend("", frameon=False)
 
-        st.plotly_chart(fig)
+        st.pyplot(fig)
 
     if plot_selection == ids.SMOOTH:
         ascending_order = bool(plot_order == ids.ASCEND)
@@ -286,9 +287,9 @@ def plot_dwt(
                 figsize=(15, 20),
                 sharex=True,
             )
-            plt.legend("", frameon=False)
+            fig.suptitle(f"Smoothing of {series_names[0]}", fontsize=24)
 
-            st.plotly_chart(fig)
+            st.pyplot(fig)
 
         elif len(dwt_results_dict) == 2:
             col1, col2 = st.columns(2)
@@ -305,8 +306,9 @@ def plot_dwt(
                     figsize=(15, 20),
                     sharex=True,
                 )
+                fig1.suptitle(f"Smoothing of {series_names[0]}", fontsize=36)
 
-                st.plotly_chart(fig1, use_container_width=True)
+                st.pyplot(fig1, use_container_width=True)
 
             with col2:
                 dwt_results_dict[series_names[1]].smooth_signal(
@@ -321,8 +323,9 @@ def plot_dwt(
                     figsize=(15, 20),
                     sharex=True,
                 )
+                fig2.suptitle(f"Smoothing of {series_names[1]}", fontsize=36)
 
-                st.plotly_chart(fig2, use_container_width=True)
+                st.pyplot(fig2, use_container_width=True)
 
 
 def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
