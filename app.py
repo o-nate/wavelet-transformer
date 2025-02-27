@@ -144,5 +144,5 @@ else:
 
 st.markdown(
     """*Please note that this tool has been tested on a limited number of datasets so far. 
-        Please, [contact me](mailto:nathanielalawrence@gmail.com) if yours isn't working!*"""
+        Please, [contact me](mailto:nathaniel@nathaniellawrence.com) if yours isn't working!*"""
 )
