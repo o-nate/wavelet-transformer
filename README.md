@@ -21,10 +21,17 @@ To create a virtual environment using `conda`, use:
 ```
 conda env create --file environment.yml
 ```
-To create a virtual environment using `pip`, use:
+To create a virtual environment using `pip`, first, create virtual environment, named `venv`:
+```
+virtualenv venv
+```
+Activate `venv`:
+```
+venv\Scripts\activate.bat
+```
+Install dependencies:
 ```
 pip install -r requirements.txt
-```
 
 Once, you have created the environment, install the internal packages using:
 ```
