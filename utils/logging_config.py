@@ -119,4 +119,4 @@ def get_logger(name: str) -> Type[logging.Logger]:
 
 
 # Suppress warnings on import
-suppress_third_party_warnings(libraries=["matplotlib", "PIL"])
+suppress_third_party_warnings(libraries=["matplotlib", "numexpr", "PIL"])
