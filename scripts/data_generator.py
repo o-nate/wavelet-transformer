@@ -16,13 +16,13 @@ logger = get_logger(__name__)
 parent_directory = Path(__file__).parents[1]
 export_directory = parent_directory / "data"
 
-DATA_REQUESTED = ids.US_CPI
-FILE_NAME = "cpi"
+DATA_REQUESTED = ids.US_SAVINGS_RATE
+FILE_NAME = "savings_rate"
 
 # %% [markdown]
 # Retrieve data via API
 
-raw_data = retrieve_data.get_fed_data(DATA_REQUESTED, units="pc1", freq="m")
+raw_data = retrieve_data.get_fed_data(DATA_REQUESTED)
 us_data, t, y = retrieve_data.clean_fed_data(raw_data)
 us_data.head()
 
