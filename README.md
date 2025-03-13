@@ -32,7 +32,7 @@ venv\Scripts\activate.bat
 Install dependencies:
 ```
 pip install -r requirements.txt
-
+```
 Once, you have created the environment, install the internal packages using:
 ```
 pip install -e .
