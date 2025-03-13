@@ -65,7 +65,6 @@ class DataForCWT:
         """Takes first date and creates array with date based on defined dt"""
         # Define starting time and time step
         t0 = min(self.t_values)
-        logger.debug("t0 type %s", type(t0))
         t0 = t0.astype("datetime64[Y]").astype(int) + 1970
         num_observations = self.t_values.size
         self.time_range = np.arange(1, num_observations + 1) * self.delta_t + t0
@@ -336,10 +335,8 @@ def main() -> None:
         data=measured_inf,
         columns=[ids.INFLATION],
     )
-    logger.debug("df shape %s", measured_inf.shape)
 
     for measure, label in cwt_measures.items():
-        logger.debug(measure)
 
         # * If INFLATION, use full series
         if measure == ids.INFLATION:
@@ -349,17 +346,11 @@ def main() -> None:
             data = us_data.copy()
 
         # * Pre-process data: Standardize and detrend
-        logger.debug("nans: %s", data[f"{measure}"].isna().sum())
         data = data.dropna()
         y1 = data[f"{measure}"].to_numpy()
         y1 = wavelet_helpers.standardize_series(
             y1
         )  # , detrend=False, remove_mean=True)
-        logger.debug(
-            "length of y1: %s. length of date: %s",
-            len(y1),
-            len(data["date"].to_numpy()),
-        )
 
         data_for_cwt = DataForCWT(
             data["date"].to_numpy(),

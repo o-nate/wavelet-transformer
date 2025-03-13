@@ -15,7 +15,7 @@ import pycwt as wavelet
 from constants import ids, results_configs
 
 from src import retrieve_data
-from src.utils import helpers, pycwt_patches, wavelet_helpers
+from src.utils import helpers, wavelet_helpers
 
 from utils.logging_config import get_logger
 
@@ -120,12 +120,12 @@ def run_xwt(
         coi_plot = coi
 
     # * Caclulate wavelet coherence
-    _, phase, _, _, _ = wavelet.wct(
+    wct, phase, _, _, _ = wavelet.wct(
         cross_wavelet_transform.y1_values,
         cross_wavelet_transform.y2_values,
         cross_wavelet_transform.delta_t,
-        delta_j=cross_wavelet_transform.delta_t,
-        s0=-1,
+        delta_j=cross_wavelet_transform.delta_j,
+        s0=cross_wavelet_transform.initial_scale,
         J=-1,
         sig=False,  #! To save time
         # significance_level=0.8646,
@@ -152,7 +152,6 @@ def calculate_phase_difference(
 
     angle = 0.5 * np.pi - xwt_phase
     xwt_u, xwt_v = np.cos(angle), np.sin(angle)
-    logger.debug("Comparing length of phase arrays: %s, %s", len(xwt_u), len(xwt_v))
     return xwt_u, xwt_v
 
 

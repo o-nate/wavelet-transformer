@@ -109,12 +109,9 @@ def plot_cwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
     - Large datasets may require significant computational resources
     - NaN values in the input series are automatically removed
     """
-    logger.debug("series_name: %s", series_names)
     series_name = series_names[0]
-    logger.debug(series_name)
 
     # * Pre-process data: Standardize and detrend
-    logger.debug("nans: %s", data[f"{series_name}"].isna().sum())
     t = data.dropna().index.to_numpy()
     y1 = data[f"{series_name}"].dropna().to_numpy()
     y1 = standardize_series(y1)  # , detrend=False, remove_mean=True)

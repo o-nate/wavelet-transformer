@@ -32,7 +32,6 @@ def create_dwt_dict(
         dict[str, Type[Any]]: Dict of DWT dataclasses
     """
     transform_dict = {}
-    logger.debug("df shape: %s", data_for_dwt.shape)
     for measure in measures_list:
         transform_dict[measure] = dwt.DataForDWT(
             y_values=data_for_dwt[measure].to_numpy(), **kwargs

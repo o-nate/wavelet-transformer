@@ -40,7 +40,6 @@ selected_data = st.sidebar.multiselect(
     "**Select a dataset**", ids.SAMPLE_DATA + ["I have my own!🤓"], max_selections=2
 )
 
-logger.debug("selected data: %s", selected_data)
 
 # Initialize uploaded_files and file_dict
 uploaded_files = []
@@ -74,8 +73,6 @@ if "I have my own!🤓" in selected_data:
             file_dict[key] = file
             uploaded_files.append(file)
 
-logger.debug("uploaded_files: %s", uploaded_files)
-logger.debug("file_dict keys: %s", list(file_dict.keys()))
 
 # Create plot
 if file_dict:
@@ -98,7 +95,7 @@ if file_dict:
         on=INDEX_COLUMN_NAME,
     )
 
-    logger.debug("combined df columns: %s", combined_dfs.columns.to_list())
+    # logger.debug("combined df columns: %s", combined_dfs.columns.to_list())
 
     if transform_selection in (ids.CWT, ids.XWT) and all(
         data in selected_data for data in [ids.INFLATION, ids.EXPECTATIONS]
@@ -113,7 +110,7 @@ if file_dict:
             how="left",
             on=INDEX_COLUMN_NAME,
         )
-        logger.debug("Columns: %s", combined_dfs.columns)
+        # logger.debug("Columns: %s", combined_dfs.columns)
         wavelet_plots.plot_xwt(combined_dfs, [ids.EXPECTATIONS, ids.DIFF_LOG_CPI])
 
     elif transform_selection == ids.DWT:

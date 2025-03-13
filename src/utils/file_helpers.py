@@ -123,7 +123,6 @@ def convert_to_dataframe(file_input: Union[UploadedFile, Path, str]) -> pd.DataF
         file_obj = file_input  # The file object itself
     else:  # Path object or string
         file_path = SAMPLE_DATA_PATH / file_input
-        logger.debug("file_path %s", file_path)
         file_name = os.path.basename(file_path)
         file_ext = os.path.splitext(file_path)[1].lower()
 
@@ -182,9 +181,7 @@ def load_file(file_to_load: Union[UploadedFile, Path, str]) -> pd.DataFrame:
         else:
             raise TypeError(f"Unsupported file type: {type(file_to_load)}")
 
-        logger.debug("file: %s", file_to_load)
         df_from_file = convert_to_dataframe(file_to_load)
-        logger.debug("df: %s", df_from_file)
 
         # * Set index to specific name to make all conform
         df_from_file.index.name = INDEX_COLUMN_NAME
@@ -209,7 +206,6 @@ def load_file(file_to_load: Union[UploadedFile, Path, str]) -> pd.DataFrame:
         df_from_file = standardize_columns_with_file_name_for(
             df_from_file, file_name=file_name
         )
-        logger.debug("df dtypes: %s", df_from_file.dtypes)
 
         return df_from_file
 

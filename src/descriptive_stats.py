@@ -191,7 +191,6 @@ def generate_descriptive_statistics(
                 add_pvalue_stars=True,
             )
     results_dict = complete_summary_results_dict(results_dict, stats_test_dict)
-    logger.debug("results_dict after summary dict %s", results_dict)
     results_df = create_summary_table(results_dict, **kwargs)
     return results_df
 
