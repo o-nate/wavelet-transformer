@@ -138,9 +138,9 @@ if file_dict:
 
 else:
     st.subheader("How it works")
-    st.text("1.) Navigate to the left-hand sidebar.")
-    st.text("2.) Select a wavelet transform.")
-    st.text("3.) Select a sample dataset or upload your own!.")
+    st.text("1.) 👈 Navigate to the left-hand sidebar.")
+    st.text("2.) 🌊Select a wavelet transform.")
+    st.text("3.) 📈Select a sample dataset or upload your own!")
 
 st.markdown(
     """*Please note that this tool has been tested on a limited number of datasets so far. 
