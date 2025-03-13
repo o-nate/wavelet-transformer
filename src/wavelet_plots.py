@@ -1,32 +1,28 @@
 """Produce wavelet transform plots"""
 
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
 
 from matplotlib.figure import Figure
-from plotly import tools
 
 from constants import ids, results_configs
 from utils.logging_config import get_logger
 
 from src import cwt, dwt, xwt
 
+from src.utils.config import INDEX_COLUMN_NAME
 from src.utils.file_helpers import load_file
-from src.utils.helpers import adjust_sidebar, combine_series
+from src.utils.helpers import adjust_xwt_series, combine_series
 from src.utils.plot_helpers import (
     plot_dwt_decomposition_for,
     plot_dwt_smoothing_for,
     set_x_ticks,
 )
-from src.utils.transform_helpers import (
-    create_cwt_dict,
-    create_cwt_results_dict,
-    create_dwt_dict,
-    create_dwt_results_dict,
-)
+from src.utils.transform_helpers import create_dwt_dict, create_dwt_results_dict
 from src.utils.wavelet_helpers import standardize_series
 
 # * Logging settings
@@ -481,3 +477,96 @@ def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
     axs.set_ylabel("Period (years)", size=14)
 
     st.pyplot(fig)
+
+
+def generate_plot(
+    file_dict: dict[str, Path],
+    transform_selection: str,
+    selected_data: list[str],
+    dwt_plot_selection: str = None,
+    dwt_smooth_plot_order: str = None,
+) -> None:
+    """Generate plot for wavelet transform
+
+    Args:
+        file_dict (dict[str, Path]): Dictionary with files and file names
+        transform_selection (str): User-selected transform
+        selected_data (list[str]): Name of dataset to transform
+        dwt_plot_selection (str, optional): DWT plot type selected. Defaults to None.
+        dwt_smooth_plot_order (str, optional): DWT smoothing plot order. Defaults to None.
+    """
+
+    with st.spinner(f"Applying {transform_selection}🧮"):
+
+        # Create list of column names based on file name to differentiate after merging the dataframes
+        column_names = list(file_dict.keys())
+
+        # Load each file into a dataframe
+        dict_of_combined_dataframes = {
+            column_name: load_file(file_path)
+            for column_name, file_path in file_dict.items()
+        }
+
+        combined_dfs = combine_series(
+            dict_of_combined_dataframes.values(),
+            how="left",
+            on=INDEX_COLUMN_NAME,
+        )
+
+        new_column_names = dict(zip(combined_dfs.columns.to_list(), file_dict.keys()))
+
+        combined_dfs = combined_dfs.rename(columns=new_column_names)
+
+        if transform_selection in (ids.CWT, ids.XWT) and all(
+            data in selected_data for data in [ids.INFLATION, ids.EXPECTATIONS]
+        ):
+            if transform_selection == ids.CWT:
+                st.toast("Looks like you're looking for the _cross-wavelet transform_")
+
+            st.toast(
+                "Converting to diff in log of CPI inflation to avoid AR(1) upper-bound error."
+            )
+            combined_dfs, column_names = adjust_xwt_series(
+                dict_of_combined_dataframes,
+                series_to_keep=ids.EXPECTATIONS,
+                replacement_series=ids.CPI,
+                diff_in_log=True,
+            )
+            plot_xwt(combined_dfs, column_names)
+
+        elif transform_selection in (ids.CWT, ids.XWT) and all(
+            data in selected_data for data in [ids.INFLATION, ids.SAVINGS_RATE]
+        ):
+            if transform_selection == ids.CWT:
+                st.toast("Looks like you're looking for the _cross-wavelet transform_")
+
+            st.toast(
+                "Converting to diff in log of CPI inflation to avoid AR(1) upper-bound error."
+            )
+            combined_dfs, column_names = adjust_xwt_series(
+                dict_of_combined_dataframes,
+                series_to_keep=ids.SAVINGS_RATE,
+                replacement_series=ids.CPI,
+                diff_in_log=True,
+            )
+            plot_xwt(combined_dfs, column_names)
+
+        elif transform_selection == ids.DWT:
+            plot_dwt(
+                combined_dfs, column_names, dwt_plot_selection, dwt_smooth_plot_order
+            )
+
+        elif transform_selection == ids.CWT and len(column_names) == 1:
+            plot_cwt(combined_dfs, column_names)
+
+        elif transform_selection == ids.CWT and len(column_names) == 2:
+            st.toast("Looks like you're looking for the _cross-wavelet transform_")
+            plot_xwt(combined_dfs, column_names)
+
+        elif transform_selection == ids.XWT and len(column_names) == 2:
+            plot_xwt(combined_dfs, column_names)
+
+        elif transform_selection == ids.XWT and len(column_names) < 2:
+            st.warning("Please supply a second series.")
+
+    plt.legend("", frameon=False)

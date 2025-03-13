@@ -65,7 +65,17 @@ SAMPLE_DATA = [
     NONDURABLES_CHG,
     DURABLES_CHG,
     SAVINGS_RATE,
-    CPI,
 ]
-API_DICT = {name: f"{name}.csv" for name in SAMPLE_DATA}
-logger.debug("API_DICT: %s", API_DICT)
+
+API_DICT = {name: f"{name}.csv" for name in SAMPLE_DATA} | {CPI: f"{CPI}.csv"}
+
+DISPLAY_NAMES = {
+    INFLATION: "Inflation rate (%)",
+    EXPECTATIONS: "Expectated inflation rate (%)",
+    SAVINGS_RATE: "Savings rate (%)",
+    NONDURABLES_CHG: "Nondurables consumption (% chg)",
+    DURABLES_CHG: "Durables consumption (% chg)",
+    SAVINGS_CHG: "Savings (% chg)",
+    CPI: "Consumer Price Index (CPI)",
+    DIFF_LOG_CPI: "CPI (Diff in log)",
+}
