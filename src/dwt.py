@@ -59,7 +59,6 @@ class ResultsFromDWT:
 
         ## Loop through levels and remove detail level component(s)
         # ! Note: signal_dict[l] provides the signal with levels <= l removed
-        logger.debug(self.levels)
         for l in range(self.levels, 0, -1):
             print(f"s_{l} stored with key {l}")
             smooth_coeffs = self.coeffs.copy()
@@ -172,7 +171,6 @@ def plot_smoothing(
     else:
         order = list(smooth_signals.items())
     for i, (level, signal) in enumerate(order, 1):
-        logger.debug('signal["signal"] %s', signal["signal"].shape)
         smooth_level = len(smooth_signals) - level
         ## Subplot for each smooth signal
         # plt.subplot(len(smooth_signals), 1, i)

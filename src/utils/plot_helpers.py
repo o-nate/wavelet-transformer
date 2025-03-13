@@ -1,6 +1,5 @@
 """For plotting transforms"""
 
-import matplotlib.pyplot as plt
 import numpy.typing as npt
 
 from matplotlib.figure import Figure
@@ -9,6 +8,7 @@ from pandas._libs.tslibs.timestamps import Timestamp
 from src import dwt, regression
 
 from src.dwt import DataForDWT, ResultsFromDWT
+
 from src.utils.config import XWT_X_TICK_NUMBERS
 
 from utils.logging_config import get_logger

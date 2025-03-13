@@ -9,6 +9,9 @@ import streamlit as st
 
 from constants import ids
 
+from src.utils.config import INDEX_COLUMN_NAME
+from src.utils.file_helpers import load_file
+
 from utils.logging_config import get_logger
 
 # * Logging settings
@@ -114,3 +117,37 @@ def adjust_sidebar(selection: str) -> str:
             "",
             (ids.DESCEND, ids.ASCEND),
         )
+
+
+def adjust_xwt_series(
+    data_dict: dict[str, pd.DataFrame],
+    series_to_keep: str,
+    replacement_series: str,
+    diff_in_log: bool = True,
+) -> tuple[pd.DataFrame, list[str]]:
+    """Switch series for XWT to avoid AR(1) error
+
+    Args:
+        data_dict (dict[str, pd.DataFrame]): _description_
+        series_to_keep (str): _description_
+        replacement_series (str): _description_
+        diff_in_log (bool, optional): _description_. Defaults to True.
+
+    Returns:
+        tuple[pd.DataFrame, list[str]]: DataFrame with list of column_names
+    """
+    df_cpi = load_file(ids.API_DICT[replacement_series])
+    if diff_in_log:
+        df_cpi = calculate_diff_in_log(df_cpi, [replacement_series])
+        df_cpi = df_cpi.drop(replacement_series, axis=1)
+    combined_dfs = combine_series(
+        [data_dict[ids.DISPLAY_NAMES[series_to_keep]], df_cpi],
+        how="left",
+        on=INDEX_COLUMN_NAME,
+    )
+    new_column_names = {col: ids.DISPLAY_NAMES[col] for col in combined_dfs.columns}
+    logger.debug("new_column_names %s", new_column_names)
+    combined_dfs = combined_dfs.rename(columns=new_column_names)
+    logger.debug("Columns: %s", combined_dfs.columns)
+    column_names = list(new_column_names.values())
+    return combined_dfs, column_names
