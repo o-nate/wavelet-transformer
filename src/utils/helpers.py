@@ -136,18 +136,19 @@ def adjust_xwt_series(
     Returns:
         tuple[pd.DataFrame, list[str]]: DataFrame with list of column_names
     """
-    df_cpi = load_file(ids.API_DICT[replacement_series])
+    df = load_file(ids.DATA_SCHEMA[replacement_series]["file_path"])
     if diff_in_log:
-        df_cpi = calculate_diff_in_log(df_cpi, [replacement_series])
-        df_cpi = df_cpi.drop(replacement_series, axis=1)
+        df = calculate_diff_in_log(
+            df,
+            [ids.DATA_SCHEMA[replacement_series]["original_name"]],
+            new_columns=False,
+        )
     combined_dfs = combine_series(
-        [data_dict[ids.DISPLAY_NAMES[series_to_keep]], df_cpi],
+        [data_dict[series_to_keep], df],
         how="left",
         on=INDEX_COLUMN_NAME,
     )
     new_column_names = {col: ids.DISPLAY_NAMES[col] for col in combined_dfs.columns}
-    logger.debug("new_column_names %s", new_column_names)
     combined_dfs = combined_dfs.rename(columns=new_column_names)
-    logger.debug("Columns: %s", combined_dfs.columns)
     column_names = list(new_column_names.values())
     return combined_dfs, column_names

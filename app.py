@@ -15,9 +15,6 @@ from utils.logging_config import get_logger
 logger = get_logger(__name__)
 
 st.title("Wavelet Transformer")
-st.text(
-    "This app allows you conduct wavelet analysis by applying the wavelet transform to data!"
-)
 
 # Add sidebar for controlling parameters
 transform_selection = st.sidebar.selectbox(
@@ -31,8 +28,7 @@ dwt_smooth_plot_order = adjust_sidebar(dwt_plot_selection)
 # Sample datasets
 selected_data = st.sidebar.multiselect(
     "**Select a dataset**",
-    [f"US {ids.DISPLAY_NAMES[name]}" for name in ids.SAMPLE_DATA]
-    + ["I have my own!🤓"],
+    [ids.DISPLAY_NAMES[name] for name in ids.SAMPLE_DATA] + ["I have my own!🤓"],
     max_selections=2,
 )
 
@@ -41,11 +37,13 @@ uploaded_files = []
 file_dict = {}
 
 # Check if any sample data is selected
-if any(data in ids.SAMPLE_DATA for data in selected_data):
+if any(data in ids.DISPLAY_NAMES.values() for data in selected_data):
     # Filter for only the sample data items
-    sample_data_items = [data for data in selected_data if data in ids.SAMPLE_DATA]
+    sample_data_items = [
+        data for data in selected_data if data in ids.DISPLAY_NAMES.values()
+    ]
     for dataset in sample_data_items:
-        file_path = ids.API_DICT[dataset]
+        file_path = ids.DATA_SCHEMA[dataset]["file_path"]
         # Handle both string paths and file objects
         if isinstance(file_path, str):
             key = os.path.basename(file_path).split(".")[0]
@@ -84,6 +82,9 @@ if file_dict:
     )
 
 else:
+    st.text(
+        "This app allows you conduct wavelet analysis by applying the wavelet transform to data!"
+    )
     st.subheader("How it works")
     st.text("1.) 👈 Navigate to the left-hand sidebar.")
     st.text("2.) 🌊Select a wavelet transform.")

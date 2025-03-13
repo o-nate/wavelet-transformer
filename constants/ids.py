@@ -58,7 +58,6 @@ DIFF_LOG_REAL_NONDURABLES = f"diff_log_{REAL_NONDURABLES}"
 DIFF_LOG_REAL_DURABLES = f"diff_log_{REAL_DURABLES}"
 DIFF_LOG_REAL_SAVINGS = f"diff_log_{REAL_SAVINGS}"
 
-# * Display names
 SAMPLE_DATA = [
     INFLATION,
     EXPECTATIONS,
@@ -67,15 +66,20 @@ SAMPLE_DATA = [
     SAVINGS_RATE,
 ]
 
-API_DICT = {name: f"{name}.csv" for name in SAMPLE_DATA} | {CPI: f"{CPI}.csv"}
-
+# * Display names
 DISPLAY_NAMES = {
-    INFLATION: "Inflation rate (%)",
-    EXPECTATIONS: "Expectated inflation rate (%)",
-    SAVINGS_RATE: "Savings rate (%)",
-    NONDURABLES_CHG: "Nondurables consumption (% chg)",
-    DURABLES_CHG: "Durables consumption (% chg)",
-    SAVINGS_CHG: "Savings (% chg)",
-    CPI: "Consumer Price Index (CPI)",
-    DIFF_LOG_CPI: "CPI (Diff in log)",
+    INFLATION: "US Inflation rate (%)",
+    EXPECTATIONS: "US Expected inflation rate (%)",
+    SAVINGS_RATE: "US Savings rate (%)",
+    NONDURABLES_CHG: "US Nondurables consumption (% chg)",
+    DURABLES_CHG: "US Durables consumption (% chg)",
+    SAVINGS_CHG: "US Savings (% chg)",
+    CPI: "US Consumer Price Index (CPI)",
+    DIFF_LOG_CPI: "US CPI (Diff in log)",
 }
+
+
+DATA_SCHEMA = {
+    DISPLAY_NAMES[name]: {"original_name": name, "file_path": f"{name}.csv"}
+    for name in SAMPLE_DATA
+} | {DISPLAY_NAMES[CPI]: {"original_name": CPI, "file_path": f"{CPI}.csv"}}

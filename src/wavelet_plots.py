@@ -518,7 +518,11 @@ def generate_plot(
         combined_dfs = combined_dfs.rename(columns=new_column_names)
 
         if transform_selection in (ids.CWT, ids.XWT) and all(
-            data in selected_data for data in [ids.INFLATION, ids.EXPECTATIONS]
+            data in selected_data
+            for data in [
+                ids.DISPLAY_NAMES[ids.INFLATION],
+                ids.DISPLAY_NAMES[ids.EXPECTATIONS],
+            ]
         ):
             if transform_selection == ids.CWT:
                 st.toast("Looks like you're looking for the _cross-wavelet transform_")
@@ -528,14 +532,18 @@ def generate_plot(
             )
             combined_dfs, column_names = adjust_xwt_series(
                 dict_of_combined_dataframes,
-                series_to_keep=ids.EXPECTATIONS,
-                replacement_series=ids.CPI,
+                series_to_keep=ids.DISPLAY_NAMES[ids.EXPECTATIONS],
+                replacement_series=ids.DISPLAY_NAMES[ids.CPI],
                 diff_in_log=True,
             )
             plot_xwt(combined_dfs, column_names)
 
         elif transform_selection in (ids.CWT, ids.XWT) and all(
-            data in selected_data for data in [ids.INFLATION, ids.SAVINGS_RATE]
+            data in selected_data
+            for data in [
+                ids.DISPLAY_NAMES[ids.INFLATION],
+                ids.DISPLAY_NAMES[ids.SAVINGS_RATE],
+            ]
         ):
             if transform_selection == ids.CWT:
                 st.toast("Looks like you're looking for the _cross-wavelet transform_")
@@ -545,8 +553,8 @@ def generate_plot(
             )
             combined_dfs, column_names = adjust_xwt_series(
                 dict_of_combined_dataframes,
-                series_to_keep=ids.SAVINGS_RATE,
-                replacement_series=ids.CPI,
+                series_to_keep=ids.DISPLAY_NAMES[ids.SAVINGS_RATE],
+                replacement_series=ids.DISPLAY_NAMES[ids.CPI],
                 diff_in_log=True,
             )
             plot_xwt(combined_dfs, column_names)
