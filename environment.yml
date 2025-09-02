@@ -1,4 +1,4 @@
-name: wavelet-dashboard
+name: wavelet-transformer
 channels:
   - conda-forge
   - defaults
