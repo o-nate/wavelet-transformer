@@ -27,7 +27,7 @@ virtualenv venv
 ```
 Activate `venv`:
 ```
-venv\Scripts\activate.bat
+venv\Scripts\activate
 ```
 Install dependencies:
 ```
@@ -40,11 +40,11 @@ pip install -e .
 
 Finally, run the environment. For a `conda` virtual environment, use:
 ```
-conda activate wavelet-dashboard
+conda activate wavelet-transformer
 ```
 For a `venv` generated via `pip`, use:
 ```
-venv\Scripts\activate.bat
+venv\Scripts\activate
 ```
 
 ## Running the dashboard locally
