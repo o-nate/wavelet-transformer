@@ -3,7 +3,7 @@ name = "wavelet-transfomer"
 version = "0.2.0"
 description = "An easy-to-use interface for anyone to test out wavelet analysis on their time series data."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "matplotlib>=3.10.7",
     "openpyxl>=3.1.5",
