@@ -2,7 +2,6 @@
 
 from __future__ import division
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import List, Tuple, Type
 
 import matplotlib.pyplot as plt

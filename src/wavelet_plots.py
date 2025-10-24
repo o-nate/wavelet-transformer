@@ -12,7 +12,7 @@ from matplotlib.figure import Figure
 from constants import ids, results_configs
 from utils.logging_config import get_logger
 
-from src import cwt, dwt, xwt
+from src import cwt, dwt, wct, xwt
 
 from src.utils.config import INDEX_COLUMN_NAME
 from src.utils.file_helpers import load_file
@@ -479,6 +479,164 @@ def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
     st.pyplot(fig)
 
 
+def plot_wct(data: pd.DataFrame, series_names: list[str]) -> Figure:
+    """
+    Performs Wavelet Coherence Transform (WCT) analysis between two time series and creates a visualization.
+
+    This function computes the wavelet coherence transform between two time series, showing their
+    coherence magnitude and relative phase in time-frequency space. It includes significance testing,
+    cone of influence, and phase difference visualization.
+
+    Parameters
+    ----------
+    data : pandas.DataFrame
+        Input DataFrame containing both time series data.
+        The index should represent time points.
+        Must contain both columns specified in series_names.
+
+    series_names : list[str]
+        List containing exactly two column names for the series to analyze.
+        Order matters: series_names[0] is treated as y1, series_names[1] as y2.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+        The generated figure containing the WCT plot.
+        Note: The figure is also displayed using streamlit's st.pyplot().
+
+    Technical Details
+    ----------------
+    - Preprocessing:
+        * Removes NaN values from both series
+        * For first series (y1):
+            - Standardizes and removes mean
+            - No detrending
+        * For second series (y2):
+            - Standardizes and detrends
+            - Keeps mean
+
+    - WCT Parameters (from results_configs):
+        * Mother Wavelet: Set in XWT_MOTHER_DICT[XWT_MOTHER]
+        * Time step (delta_t): Set in XWT_DT
+        * Scale resolution (delta_j): Set in XWT_DJ
+        * Initial scale (s0): Set in XWT_S0
+        * Number of scales: Set in LEVELS
+
+    - Plot Features:
+        * Coherence magnitude with significance contours
+        * Cone of influence showing edge effects
+        * Phase difference arrows
+        * Period displayed in logarithmic scale (base 2)
+        * Custom x-axis tick formatting
+        * Figure size: 10x8 inches
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> import numpy as np
+    >>>
+    >>> # Create sample data with two related signals
+    >>> dates = pd.date_range(start='2000-01-01', periods=1000, freq='D')
+    >>> values1 = np.sin(2 * np.pi * dates.dayofyear / 365)  # Annual cycle
+    >>> values2 = np.sin(2 * np.pi * dates.dayofyear / 365 + np.pi/4)  # Phase-shifted
+    >>> df = pd.DataFrame({
+    ...     'temperature': values1,
+    ...     'precipitation': values2
+    ... }, index=dates)
+    >>>
+    >>> # Plot WCT
+    >>> fig = plot_wct(df, ['temperature', 'precipitation'])
+
+    Plot Interpretation
+    ------------------
+    - Heatmap: Shows coherence magnitude between signals
+        * Brighter colors indicate stronger coherence
+        * Black contours indicate statistical significance
+    - Arrows: Indicate phase relationship
+        * Right: In-phase
+        * Left: Anti-phase
+        * Up: Second series leads by 90°
+        * Down: First series leads by 90°
+    - Cone of Influence: Region outside is subject to edge effects
+
+    Notes
+    -----
+    - Y-axis (period) is displayed in years
+    - Requires exactly two input series
+    - Plot includes statistical significance testing
+    - Edge effects are indicated by the cone of influence
+
+    See Also
+    --------
+    standardize_series : Function used for preprocessing
+    wct.DataForWCT : Class handling WCT input data
+    wct.run_wct : Function performing the WCT computation
+    wct.plot_wct : Function creating the WCT visualization
+    set_x_ticks : Function formatting x-axis ticks
+
+    Warnings
+    --------
+    - Input series should have matching timestamps
+    - Series should be sufficiently long for meaningful analysis
+    - Edge effects become significant at larger scales
+    - Interpretation of phase differences requires careful consideration
+        of physical relationships between variables
+    """
+
+    # * Pre-process data: Standardize and detrend
+    data_no_nans = data.dropna()
+    t = data_no_nans.index.to_list()
+    y1 = data_no_nans[series_names[0]].to_numpy()
+    y2 = data_no_nans[series_names[1]].to_numpy()
+    y1 = standardize_series(y1, detrend=False, remove_mean=True)
+    y2 = standardize_series(y2, detrend=True, remove_mean=False)
+
+    wct_data = wct.DataForWCT(
+        y1_values=y1,
+        y2_values=y2,
+        mother_wavelet=results_configs.XWT_MOTHER_DICT[results_configs.XWT_MOTHER],
+        delta_t=results_configs.XWT_DT,
+        delta_j=results_configs.XWT_DJ,
+        initial_scale=results_configs.XWT_S0,
+        levels=results_configs.LEVELS,
+    )
+
+    results_from_wct = wct.run_wct(wct_data)
+
+    # * Plot WCT coherence spectrum
+    fig, axs = plt.subplots(1, 1, figsize=(10, 8), sharex=True)
+
+    wct.plot_wct(
+        axs,
+        wct_data,
+        results_from_wct,
+        include_significance=True,
+        include_cone_of_influence=True,
+        include_phase_difference=True,
+        **results_configs.XWT_PLOT_PROPS,
+    )
+
+    axs.set_ylim(axs.get_ylim()[::-1])
+
+    # * Set y axis tick labels
+    y_ticks = 2 ** np.arange(
+        np.ceil(np.log2(results_from_wct.period.min())),
+        np.ceil(np.log2(results_from_wct.period.max())),
+    )
+    axs.set_yticks(np.log2(y_ticks))
+    axs.set_yticklabels(y_ticks, size=12)
+
+    # * Set x axis tick labels
+    x_tick_positions, x_ticks = set_x_ticks(t)
+    axs.set_xticks(x_tick_positions)
+    axs.set_xticklabels(x_ticks, size=12)
+
+    axs.set_title(f"{series_names[0]} X {series_names[1]}", size=16)
+    axs.set_ylabel("Period (years)", size=14)
+
+    st.pyplot(fig)
+
+
 def generate_plot(
     file_dict: dict[str, Path],
     transform_selection: str,
@@ -517,7 +675,7 @@ def generate_plot(
 
         combined_dfs = combined_dfs.rename(columns=new_column_names)
 
-        if transform_selection in (ids.CWT, ids.XWT) and all(
+        if transform_selection in (ids.CWT, ids.WCT) and all(
             data in selected_data
             for data in [
                 ids.DISPLAY_NAMES[ids.INFLATION],
@@ -525,7 +683,9 @@ def generate_plot(
             ]
         ):
             if transform_selection == ids.CWT:
-                st.toast("Looks like you're looking for the _cross-wavelet transform_")
+                st.toast(
+                    "Looks like you're looking for the _wavelet coherence transform_"
+                )
 
             st.toast(
                 "Converting to diff in log of CPI inflation to avoid AR(1) upper-bound error."
@@ -536,9 +696,9 @@ def generate_plot(
                 replacement_series=ids.DISPLAY_NAMES[ids.CPI],
                 diff_in_log=True,
             )
-            plot_xwt(combined_dfs, column_names)
+            plot_wct(combined_dfs, column_names)
 
-        elif transform_selection in (ids.CWT, ids.XWT) and all(
+        elif transform_selection in (ids.CWT, ids.WCT) and all(
             data in selected_data
             for data in [
                 ids.DISPLAY_NAMES[ids.INFLATION],
@@ -546,7 +706,9 @@ def generate_plot(
             ]
         ):
             if transform_selection == ids.CWT:
-                st.toast("Looks like you're looking for the _cross-wavelet transform_")
+                st.toast(
+                    "Looks like you're looking for the _wavelet coherence transform_"
+                )
 
             st.toast(
                 "Converting to diff in log of CPI inflation to avoid AR(1) upper-bound error."
@@ -557,7 +719,7 @@ def generate_plot(
                 replacement_series=ids.DISPLAY_NAMES[ids.CPI],
                 diff_in_log=True,
             )
-            plot_xwt(combined_dfs, column_names)
+            plot_wct(combined_dfs, column_names)
 
         elif transform_selection == ids.DWT:
             plot_dwt(
@@ -568,13 +730,13 @@ def generate_plot(
             plot_cwt(combined_dfs, column_names)
 
         elif transform_selection == ids.CWT and len(column_names) == 2:
-            st.toast("Looks like you're looking for the _cross-wavelet transform_")
-            plot_xwt(combined_dfs, column_names)
+            st.toast("Looks like you're looking for the _wavelet coherence transform_")
+            plot_wct(combined_dfs, column_names)
 
-        elif transform_selection == ids.XWT and len(column_names) == 2:
-            plot_xwt(combined_dfs, column_names)
+        elif transform_selection == ids.WCT and len(column_names) == 2:
+            plot_wct(combined_dfs, column_names)
 
-        elif transform_selection == ids.XWT and len(column_names) < 2:
+        elif transform_selection == ids.WCT and len(column_names) < 2:
             st.warning("Please supply a second series.")
 
     plt.legend("", frameon=False)
