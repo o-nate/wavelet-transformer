@@ -1,10 +1,8 @@
 """Statistical tests for time series analysis"""
 
-import logging
-from pathlib import Path
 import sys
 
-from typing import Any, Dict, Hashable, List, Union
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +10,11 @@ import pandas as pd
 from scipy import stats
 import statsmodels.graphics.tsaplots
 import statsmodels.stats.diagnostic
+
+# Ensure project root is on sys.path so top-level packages like `constants` resolve
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from constants import ids
 from src.utils.helpers import add_real_value_columns, calculate_diff_in_log
@@ -43,9 +46,9 @@ LJUNG_BOX_LAGS = [40]
 
 def include_statistic(
     statistic: str,
-    statistic_data: Dict[str, float],
-    results_dict: Dict[str, Dict[str, float]],
-) -> Dict[str, Dict[str, float]]:
+    statistic_data: dict[str, float],
+    results_dict: dict[str, dict[str, float]],
+) -> dict[str, dict[str, float]]:
     """Add skewness data for each measure"""
     for measure, result_dict in results_dict.items():
         result_dict[statistic] = statistic_data[measure]
@@ -53,9 +56,9 @@ def include_statistic(
 
 
 def add_p_value_stars(
-    test_statistic: Union[int, float],
+    test_statistic: int | float,
     p_value: float,
-    hypothesis_threshold: List[float],
+    hypothesis_threshold: list[float],
     decimals_places: int = 2,
 ) -> str:
     """Add stars (*) for each p value threshold that the test statistic falls below"""
@@ -70,7 +73,7 @@ def test_normality(
     data: pd.DataFrame,
     date_column: str = "date",
     add_pvalue_stars: bool = False,
-) -> Dict[str, str]:
+) -> dict[str, str | float]:
     """Generate dictionary with Jarque-Bera test results for each dataset"""
     results_dict = {}
     cols_to_test = data.drop(date_column, axis=1).columns.to_list()
@@ -78,17 +81,19 @@ def test_normality(
         x = data[col].dropna().to_numpy()
         test_stat, p_value = NORMALITY_TESTS[normality_test](x)
         if add_pvalue_stars:
-            result = add_p_value_stars(test_stat, p_value, HYPOTHESIS_THRESHOLD)
-        results_dict[col] = result
+            results_dict[col] = add_p_value_stars(
+                test_stat, p_value, HYPOTHESIS_THRESHOLD
+            )
+        results_dict[col] = test_stat
     return results_dict
 
 
 def conduct_ljung_box(
     data: pd.DataFrame,
-    lags: List[int],
+    lags: list[int],
     date_column: str = "date",
     add_pvalue_stars: bool = False,
-) -> Dict[str, str]:
+) -> dict[str, str | float]:
     """Generate dictionary with Ljung-Box test results for each dataset"""
     results_dict = {}
     cols_to_test = data.drop(date_column, axis=1).columns.to_list()
@@ -102,13 +107,13 @@ def conduct_ljung_box(
         )
         if add_pvalue_stars:
             result = add_p_value_stars(test_stat, p_value, HYPOTHESIS_THRESHOLD)
-        results_dict[col] = result
+        results_dict[col] = test_stat
     return results_dict
 
 
 def correlation_matrix_pvalues(
     data: pd.DataFrame,
-    hypothesis_threshold: List[float],
+    hypothesis_threshold: list[float],
     decimals: int = 2,
     display: bool = False,
     export_table: bool = False,
@@ -138,8 +143,9 @@ def correlation_matrix_pvalues(
 
 
 def complete_summary_results_dict(
-    initial_results_dict: Dict[Hashable, Any], data_dict: Dict[str, Dict[str, str]]
-) -> Dict[str, Dict[str, Union[float, str]]]:
+    initial_results_dict: dict[str, dict[str, int | float]],
+    data_dict: dict[str, dict[str, str]],
+) -> dict[str, dict[str, float | str]]:
     """Combine statistical test results in a single dict"""
     for stat_test, result in data_dict.items():
         initial_results_dict = include_statistic(
@@ -149,7 +155,7 @@ def complete_summary_results_dict(
 
 
 def create_summary_table(
-    data_dict: Dict[str, Dict[str, Union[float, str]]], export_table: bool = False
+    data_dict: dict[str, dict[str, float | str]], export_table: bool = False
 ) -> pd.DataFrame:
     """Create table with descriptive statistics for all datasets with option to export"""
     df = pd.DataFrame(data_dict)
@@ -163,7 +169,7 @@ def create_summary_table(
 
 
 def generate_descriptive_statistics(
-    data: pd.DataFrame, stats_test: List[str], **kwargs
+    data: pd.DataFrame, stats_test: list[str], **kwargs
 ) -> pd.DataFrame:
     """Produce descriptive statistics test results"""
     ## Initialize dict to store each test

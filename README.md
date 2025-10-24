@@ -1,4 +1,4 @@
-# Wavelet Dashboard
+# Wavelet Transformer
 This provides an easy-to-use interface for anyone to test out wavelet analysis on their time series data. The underlying algorithms are based off of my paper [Inflation expectations in time and frequency: A wavelet analysis](https://www.nathaniellawrence.com/research#h.z59n5ss724ja).
 
 <i>Note: This version is still a prototype and quite brittle. Please, let me know what bugs, errors, etc. arise for you when using.</i>

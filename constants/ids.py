@@ -7,7 +7,7 @@ logger = get_logger(__name__)
 # * Wavelet transform labels
 CWT = "Continuous (CWT)"
 DWT = "Discrete (DWT)"
-XWT = "Cross-Wavelet (XWT)"
+WCT = "Wavelet Coherence (WCT)"
 DECOMPOSE = "Decomposition"
 SMOOTH = "Smoothing"
 ASCEND = "Ascending"

@@ -19,7 +19,7 @@ st.title("Wavelet Transformer")
 # Add sidebar for controlling parameters
 transform_selection = st.sidebar.selectbox(
     "**Select a wavelet transform**",
-    (ids.CWT, ids.DWT, ids.XWT),
+    (ids.CWT, ids.DWT, ids.WCT),
     key="wavelet_selection",
 )
 dwt_plot_selection = adjust_sidebar(transform_selection)
