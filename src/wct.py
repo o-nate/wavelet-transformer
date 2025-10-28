@@ -95,6 +95,7 @@ class ResultsFromWCT:
 
 def run_wct(
     wavelet_coherence_transform: Type[DataForWCT],
+    calculate_signficance: bool = True,
     significance_level: float = 0.95,
 ) -> Type[ResultsFromWCT]:
     """Conduct Wavelet Coherence Transformation on two series.
@@ -109,6 +110,7 @@ def run_wct(
         dj=wavelet_coherence_transform.delta_j,
         s0=wavelet_coherence_transform.initial_scale,
         J=-1,
+        sig=calculate_signficance,
         significance_level=significance_level,
         wavelet=wavelet_coherence_transform.mother_wavelet,
         normalize=True,
@@ -423,7 +425,7 @@ def main() -> None:
     )
     logger.debug("df shape %s", measured_inf.shape)
 
-    for comp in series_comparisons[14:15]:
+    for comp in series_comparisons[4:5]:
         logger.debug(comp)
 
         data = us_data.copy()

@@ -86,6 +86,8 @@ def run_cwt(
     cwt_data: Type[DataForCWT],
     normalize: bool = True,
     standardize: bool = False,
+    calculate_significance: bool = True,
+    significance_level: float = 0.95,
     **kwargs,
 ) -> Type[ResultsFromCWT]:
     """Conducts Continuous Wavelet Transform\n
@@ -113,20 +115,22 @@ def run_cwt(
     # Normalized Fourier equivalent periods
     cwt_period = 1 / freqs
 
-    # * Statistical significance
-    # where the ratio ``cwt_power / sig95 > 1``.
-    num_observations = len(cwt_data.t_values)
-    signif, _ = wavelet.significance(
-        1.0,
-        DT,
-        scales,
-        0,
-        alpha,
-        significance_level=0.95,
-        wavelet=cwt_data.mother_wavelet,
-    )
-    cwt_sig95 = np.ones([1, num_observations]) * signif[:, None]
-    cwt_sig95 = cwt_power / cwt_sig95
+    cwt_sig95 = None
+    if calculate_significance:
+        # * Statistical significance
+        # where the ratio ``cwt_power / sig95 > 1``.
+        num_observations = len(cwt_data.t_values)
+        signif, _ = wavelet.significance(
+            1.0,
+            DT,
+            scales,
+            0,
+            alpha,
+            significance_level=significance_level,
+            wavelet=cwt_data.mother_wavelet,
+        )
+        cwt_sig95 = np.ones([1, num_observations]) * signif[:, None]
+        cwt_sig95 = cwt_power / cwt_sig95
 
     return ResultsFromCWT(cwt_power, cwt_period, cwt_sig95, cwt_coi)
 

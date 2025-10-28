@@ -1,6 +1,7 @@
 # Folders to ignore
 data/
 logs/
+.github/prompts/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

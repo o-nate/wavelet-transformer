@@ -3,11 +3,15 @@
 import os
 
 import streamlit as st
+import pandas as pd
 
 from constants import ids
 
 from src import wavelet_plots
 from src.utils.helpers import adjust_sidebar
+from src import descriptive_stats as ds
+from src.utils.file_helpers import load_file
+from src.utils.config import INDEX_COLUMN_NAME
 
 from utils.logging_config import get_logger
 
@@ -22,6 +26,24 @@ transform_selection = st.sidebar.selectbox(
     (ids.CWT, ids.DWT, ids.WCT),
     key="wavelet_selection",
 )
+
+# Add checkbox for CWT/WCT significance testing
+calculate_significance = False
+significance_level = 95
+
+if transform_selection == ids.CWT:
+    calculate_significance = st.sidebar.checkbox("Calculate statistical significance", value=True)
+    if calculate_significance:
+        significance_level = st.sidebar.number_input(
+            "Significance level", min_value=0, max_value=100, value=95
+        )
+elif transform_selection == ids.WCT:
+    calculate_significance = st.sidebar.checkbox("Calculate statistical significance")
+    if calculate_significance:
+        significance_level = st.sidebar.number_input(
+            "Significance level", min_value=0, max_value=100, value=95
+        )
+
 dwt_plot_selection = adjust_sidebar(transform_selection)
 dwt_smooth_plot_order = adjust_sidebar(dwt_plot_selection)
 
@@ -71,15 +93,77 @@ if "I have my own!🤓" in selected_data:
             uploaded_files.append(file)
 
 
-# Create plot
+# Create plot and descriptive stats tabs when files exist
 if file_dict:
-    wavelet_plots.generate_plot(
-        file_dict=file_dict,
-        transform_selection=transform_selection,
-        selected_data=selected_data,
-        dwt_plot_selection=dwt_plot_selection,
-        dwt_smooth_plot_order=dwt_smooth_plot_order,
-    )
+    tab_plot, tab_stats = st.tabs(["Plot", "Descriptive statistics"])
+
+    with tab_plot:
+        # Reuse existing plotting function (it may write to Streamlit internally)
+        wavelet_plots.generate_plot(
+            file_dict=file_dict,
+            transform_selection=transform_selection,
+            selected_data=selected_data,
+            dwt_plot_selection=dwt_plot_selection,
+            dwt_smooth_plot_order=dwt_smooth_plot_order,
+            calculate_significance=calculate_significance,
+            significance_level=significance_level,
+        )
+
+    with tab_stats:
+        st.text("See below some descriptive statistics for the datasets loaded.")
+        parts = []
+        errors = []
+        for name, path_or_file in file_dict.items():
+            try:
+                df = load_file(path_or_file)
+                if df is None:
+                    errors.append(f"{name}: could not load file into DataFrame")
+                    continue
+
+                # If loader stored dates in the index (INDEX_COLUMN_NAME), move it to a 'date' column
+                if (
+                    df.index.name == INDEX_COLUMN_NAME
+                    or INDEX_COLUMN_NAME in df.columns
+                ):
+                    df = df.reset_index()
+                    if INDEX_COLUMN_NAME in df.columns:
+                        df = df.rename(columns={INDEX_COLUMN_NAME: "date"})
+
+                # Ensure there's a 'date' column and it's datetime
+                if "date" in df.columns:
+                    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+
+                # pick the first non-date column as the value column and rename it to the display name
+                value_cols = [c for c in df.columns if c.lower() != "date"]
+                if not value_cols:
+                    errors.append(f"{name}: no value column found")
+                    continue
+                part = df[["date", value_cols[0]]].rename(columns={value_cols[0]: name})
+                parts.append(part)
+            except FileNotFoundError as fe:
+                errors.append(f"{name}: {fe}")
+            except Exception as e:
+                errors.append(f"{name}: {e}")
+
+        if parts:
+            merged = parts[0]
+            for p in parts[1:]:
+                merged = merged.merge(p, on="date", how="outer")
+            merged = merged.sort_values("date").reset_index(drop=True)
+
+            # Call descriptive stats generator on the merged dataframe (expects a 'date' column)
+            results_df = ds.generate_descriptive_statistics(
+                merged, ds.DESCRIPTIVE_STATS
+            )
+            st.text(
+                f"Start date: {merged['date'].min().date()} | End date: {merged['date'].max().date()}"
+            )
+            st.dataframe(results_df)
+        else:
+            st.info("No valid datasets available to compute descriptive statistics.")
+
+        for err in errors:
+            st.error(f"Could not compute descriptive stats for {err}")
 
 else:
     st.text(

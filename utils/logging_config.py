@@ -4,7 +4,7 @@ import logging
 import logging.config
 import os
 from datetime import datetime
-from typing import Optional, Type
+from typing import Optional
 import warnings
 
 LOG_DIR = "logs"
@@ -106,14 +106,14 @@ def suppress_third_party_warnings(
         logger.setLevel(logging.CRITICAL)
 
 
-def get_logger(name: str) -> Type[logging.Logger]:
+def get_logger(name: str) -> logging.Logger:
     """Get logger for module
 
     Args:
         name (str): Module name, normally __name__
 
     Returns:
-        Type[logging.Logger]: Module's logger object
+        logging.Logger: Module's logger object
     """
     return logging.getLogger(name)
 
