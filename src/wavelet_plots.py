@@ -16,7 +16,7 @@ from src import cwt, dwt, wct, xwt
 
 from src.utils.config import INDEX_COLUMN_NAME
 from src.utils.file_helpers import load_file
-from src.utils.helpers import adjust_xwt_series, combine_series
+from src.utils.helpers import adjust_series_for_ar1_bound, combine_series
 from src.utils.plot_helpers import (
     plot_dwt_decomposition_for,
     plot_dwt_smoothing_for,
@@ -29,7 +29,12 @@ from src.utils.wavelet_helpers import standardize_series
 logger = get_logger(__name__)
 
 
-def plot_cwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
+def plot_cwt(
+    data: pd.DataFrame,
+    series_names: list[str],
+    calculate_significance: bool = True,
+    significance_level: int = 95,
+) -> Figure:
     """
     Performs Continuous Wavelet Transform (CWT) analysis on a time series and creates a visualization.
 
@@ -47,6 +52,12 @@ def plot_cwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
     series_names : list[str]
         List of column names in the DataFrame to analyze.
         Currently, only the first series name is used.
+
+    calculate_significance : bool, optional
+        Whether to calculate statistical significance, by default True
+
+    significance_level : int, optional
+        The significance level as an integer (e.g., 95 for 95%), by default 95
 
     Returns
     -------
@@ -122,12 +133,23 @@ def plot_cwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
         levels=results_configs.LEVELS,
     )
 
-    results_from_cwt = cwt.run_cwt(data_for_cwt, standardize=True)
+    results_from_cwt = cwt.run_cwt(
+        data_for_cwt,
+        standardize=True,
+        calculate_significance=calculate_significance,
+        significance_level=significance_level / 100,
+    )
 
     # * Plot results
     plt.close("all")
     fig, ax = plt.subplots(1, 1, **results_configs.CWT_FIG_PROPS)
-    cwt.plot_cwt(ax, data_for_cwt, results_from_cwt, **results_configs.CWT_PLOT_PROPS)
+    cwt.plot_cwt(
+        ax,
+        data_for_cwt,
+        results_from_cwt,
+        include_significance=calculate_significance,
+        **results_configs.CWT_PLOT_PROPS,
+    )
 
     # * Set labels/title
     ax.set_xlabel("")
@@ -372,23 +394,6 @@ def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
         * Custom x-axis tick formatting
         * Figure size: 10x8 inches
 
-    Examples
-    --------
-    >>> import pandas as pd
-    >>> import numpy as np
-    >>>
-    >>> # Create sample data with two related signals
-    >>> dates = pd.date_range(start='2000-01-01', periods=1000, freq='D')
-    >>> values1 = np.sin(2 * np.pi * dates.dayofyear / 365)  # Annual cycle
-    >>> values2 = np.sin(2 * np.pi * dates.dayofyear / 365 + np.pi/4)  # Phase-shifted
-    >>> df = pd.DataFrame({
-    ...     'temperature': values1,
-    ...     'precipitation': values2
-    ... }, index=dates)
-    >>>
-    >>> # Plot XWT
-    >>> fig = plot_xwt(df, ['temperature', 'precipitation'])
-
     Plot Interpretation
     ------------------
     - Heatmap: Shows common power between signals
@@ -479,7 +484,12 @@ def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
     st.pyplot(fig)
 
 
-def plot_wct(data: pd.DataFrame, series_names: list[str]) -> Figure:
+def plot_wct(
+    data: pd.DataFrame,
+    series_names: list[str],
+    calculate_significance: bool = False,
+    significance_level: int = 95,
+) -> Figure:
     """
     Performs Wavelet Coherence Transform (WCT) analysis between two time series and creates a visualization.
 
@@ -497,6 +507,12 @@ def plot_wct(data: pd.DataFrame, series_names: list[str]) -> Figure:
     series_names : list[str]
         List containing exactly two column names for the series to analyze.
         Order matters: series_names[0] is treated as y1, series_names[1] as y2.
+
+    calculate_significance : bool, optional
+        Whether to calculate statistical significance, by default False
+
+    significance_level : int, optional
+        The significance level as an integer (e.g., 95 for 95%), by default 95
 
     Returns
     -------
@@ -529,35 +545,6 @@ def plot_wct(data: pd.DataFrame, series_names: list[str]) -> Figure:
         * Period displayed in logarithmic scale (base 2)
         * Custom x-axis tick formatting
         * Figure size: 10x8 inches
-
-    Examples
-    --------
-    >>> import pandas as pd
-    >>> import numpy as np
-    >>>
-    >>> # Create sample data with two related signals
-    >>> dates = pd.date_range(start='2000-01-01', periods=1000, freq='D')
-    >>> values1 = np.sin(2 * np.pi * dates.dayofyear / 365)  # Annual cycle
-    >>> values2 = np.sin(2 * np.pi * dates.dayofyear / 365 + np.pi/4)  # Phase-shifted
-    >>> df = pd.DataFrame({
-    ...     'temperature': values1,
-    ...     'precipitation': values2
-    ... }, index=dates)
-    >>>
-    >>> # Plot WCT
-    >>> fig = plot_wct(df, ['temperature', 'precipitation'])
-
-    Plot Interpretation
-    ------------------
-    - Heatmap: Shows coherence magnitude between signals
-        * Brighter colors indicate stronger coherence
-        * Black contours indicate statistical significance
-    - Arrows: Indicate phase relationship
-        * Right: In-phase
-        * Left: Anti-phase
-        * Up: Second series leads by 90°
-        * Down: First series leads by 90°
-    - Cone of Influence: Region outside is subject to edge effects
 
     Notes
     -----
@@ -601,7 +588,11 @@ def plot_wct(data: pd.DataFrame, series_names: list[str]) -> Figure:
         levels=results_configs.LEVELS,
     )
 
-    results_from_wct = wct.run_wct(wct_data)
+    results_from_wct = wct.run_wct(
+        wct_data,
+        calculate_signficance=calculate_significance,
+        significance_level=significance_level / 100,
+    )
 
     # * Plot WCT coherence spectrum
     fig, axs = plt.subplots(1, 1, figsize=(10, 8), sharex=True)
@@ -610,7 +601,7 @@ def plot_wct(data: pd.DataFrame, series_names: list[str]) -> Figure:
         axs,
         wct_data,
         results_from_wct,
-        include_significance=True,
+        include_significance=calculate_significance,
         include_cone_of_influence=True,
         include_phase_difference=True,
         **results_configs.XWT_PLOT_PROPS,
@@ -643,6 +634,8 @@ def generate_plot(
     selected_data: list[str],
     dwt_plot_selection: str = None,
     dwt_smooth_plot_order: str = None,
+    calculate_significance: bool = False,
+    significance_level: int = 95,
 ) -> None:
     """Generate plot for wavelet transform
 
@@ -652,6 +645,8 @@ def generate_plot(
         selected_data (list[str]): Name of dataset to transform
         dwt_plot_selection (str, optional): DWT plot type selected. Defaults to None.
         dwt_smooth_plot_order (str, optional): DWT smoothing plot order. Defaults to None.
+        calculate_significance (bool, optional): Whether to calculate statistical significance for WCT. Defaults to False.
+        significance_level (int, optional): The significance level for WCT as an integer. Defaults to 95.
     """
 
     with st.spinner(f"Applying {transform_selection}🧮"):
@@ -666,7 +661,7 @@ def generate_plot(
         }
 
         combined_dfs = combine_series(
-            dict_of_combined_dataframes.values(),
+            list(dict_of_combined_dataframes.values()),
             how="left",
             on=INDEX_COLUMN_NAME,
         )
@@ -675,66 +670,147 @@ def generate_plot(
 
         combined_dfs = combined_dfs.rename(columns=new_column_names)
 
-        if transform_selection in (ids.CWT, ids.WCT) and all(
-            data in selected_data
-            for data in [
-                ids.DISPLAY_NAMES[ids.INFLATION],
-                ids.DISPLAY_NAMES[ids.EXPECTATIONS],
-            ]
-        ):
-            if transform_selection == ids.CWT:
-                st.toast(
-                    "Looks like you're looking for the _wavelet coherence transform_"
-                )
-
-            st.toast(
-                "Converting to diff in log of CPI inflation to avoid AR(1) upper-bound error."
-            )
-            combined_dfs, column_names = adjust_xwt_series(
-                dict_of_combined_dataframes,
-                series_to_keep=ids.DISPLAY_NAMES[ids.EXPECTATIONS],
-                replacement_series=ids.DISPLAY_NAMES[ids.CPI],
-                diff_in_log=True,
-            )
-            plot_wct(combined_dfs, column_names)
-
-        elif transform_selection in (ids.CWT, ids.WCT) and all(
-            data in selected_data
-            for data in [
-                ids.DISPLAY_NAMES[ids.INFLATION],
-                ids.DISPLAY_NAMES[ids.SAVINGS_RATE],
-            ]
-        ):
-            if transform_selection == ids.CWT:
-                st.toast(
-                    "Looks like you're looking for the _wavelet coherence transform_"
-                )
-
-            st.toast(
-                "Converting to diff in log of CPI inflation to avoid AR(1) upper-bound error."
-            )
-            combined_dfs, column_names = adjust_xwt_series(
-                dict_of_combined_dataframes,
-                series_to_keep=ids.DISPLAY_NAMES[ids.SAVINGS_RATE],
-                replacement_series=ids.DISPLAY_NAMES[ids.CPI],
-                diff_in_log=True,
-            )
-            plot_wct(combined_dfs, column_names)
-
-        elif transform_selection == ids.DWT:
+        if transform_selection == ids.DWT:
             plot_dwt(
                 combined_dfs, column_names, dwt_plot_selection, dwt_smooth_plot_order
             )
 
+        elif transform_selection in (ids.CWT, ids.WCT):
+            # First, try to plot normally using the loaded/combined data.
+            try:
+                if transform_selection == ids.CWT:
+                    if len(column_names) == 1:
+                        plot_cwt(
+                            combined_dfs,
+                            column_names,
+                            calculate_significance=calculate_significance,
+                            significance_level=significance_level,
+                        )
+                    else:
+                        st.toast(
+                            "Looks like you're looking for the _wavelet coherence transform_"
+                        )
+                        plot_wct(
+                            combined_dfs,
+                            column_names,
+                            calculate_significance=calculate_significance,
+                            significance_level=significance_level,
+                        )
+
+                else:  # ids.WCT
+                    if len(column_names) == 2:
+                        plot_wct(
+                            combined_dfs,
+                            column_names,
+                            calculate_significance=calculate_significance,
+                            significance_level=significance_level,
+                        )
+                    else:
+                        st.warning("Please supply a second series.")
+
+            except Exception as e:
+                # If normal plotting fails (e.g. AR(1) upper-bound error), try the AR(1) adjustment
+                logger.debug("Initial CWT/WCT plotting failed: %s", e)
+
+                try:
+                    st.toast(
+                        "Converting to diff in log of CPI inflation to avoid AR(1) upper-bound error."
+                    )
+
+                    # Choose which series to keep when replacing CPI: prefer EXPECTATIONS, then SAVINGS_RATE,
+                    # otherwise pick the first non-CPI series, or the first series available.
+                    preferred = None
+                    for pref in (ids.EXPECTATIONS, ids.SAVINGS_RATE):
+                        disp = ids.DISPLAY_NAMES[pref]
+                        if disp in column_names:
+                            preferred = disp
+                            break
+
+                    if preferred is None:
+                        preferred = next(
+                            (
+                                c
+                                for c in column_names
+                                if c != ids.DISPLAY_NAMES[ids.CPI]
+                            ),
+                            column_names[0] if column_names else None,
+                        )
+
+                    if preferred is None:
+                        raise ValueError(
+                            "No series available to keep for AR(1) adjustment."
+                        )
+
+                    combined_dfs, column_names = adjust_series_for_ar1_bound(
+                        dict_of_combined_dataframes,
+                        series_to_keep=preferred,
+                        replacement_series=ids.DISPLAY_NAMES[ids.CPI],
+                        diff_in_log=True,
+                    )
+
+                    # Retry plotting after adjustment
+                    if transform_selection == ids.CWT:
+                        if len(column_names) == 1:
+                            plot_cwt(
+                                combined_dfs,
+                                column_names,
+                                calculate_significance=calculate_significance,
+                                significance_level=significance_level,
+                            )
+                        else:
+                            st.toast(
+                                "Looks like you're looking for the _wavelet coherence transform_"
+                            )
+                            plot_wct(
+                                combined_dfs,
+                                column_names,
+                                calculate_significance=calculate_significance,
+                                significance_level=significance_level,
+                            )
+
+                    else:  # ids.WCT
+                        if len(column_names) == 2:
+                            plot_wct(
+                                combined_dfs,
+                                column_names,
+                                calculate_significance=calculate_significance,
+                                significance_level=significance_level,
+                            )
+                        else:
+                            st.warning("Please supply a second series.")
+
+                except Exception as exc:
+                    logger.debug(
+                        "adjust_series_for_ar1_bound skipped or failed: %s", exc
+                    )
+                    st.error(
+                        "Plotting failed after applying AR(1) adjustment. See logs for details."
+                    )
+
         elif transform_selection == ids.CWT and len(column_names) == 1:
-            plot_cwt(combined_dfs, column_names)
+            plot_cwt(
+                combined_dfs,
+                column_names,
+                calculate_significance=calculate_significance,
+                significance_level=significance_level,
+            )
 
         elif transform_selection == ids.CWT and len(column_names) == 2:
             st.toast("Looks like you're looking for the _wavelet coherence transform_")
-            plot_wct(combined_dfs, column_names)
+            plot_wct(
+                combined_dfs,
+                column_names,
+                calculate_significance=calculate_significance,
+                significance_level=significance_level,
+            )
 
         elif transform_selection == ids.WCT and len(column_names) == 2:
-            plot_wct(combined_dfs, column_names)
+            plot_wct(
+                combined_dfs,
+                column_names,
+                calculate_significance=calculate_significance,
+                significance_level=significance_level,
+            )
 
         elif transform_selection == ids.WCT and len(column_names) < 2:
             st.warning("Please supply a second series.")

@@ -119,7 +119,7 @@ def adjust_sidebar(selection: str) -> str:
         )
 
 
-def adjust_xwt_series(
+def adjust_series_for_ar1_bound(
     data_dict: dict[str, pd.DataFrame],
     series_to_keep: str,
     replacement_series: str,

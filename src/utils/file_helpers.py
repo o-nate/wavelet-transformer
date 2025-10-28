@@ -1,6 +1,6 @@
 """Helper functions for handling data"""
 
-from typing import Union, Type
+from typing import Union
 from pathlib import Path
 import os
 
@@ -141,11 +141,13 @@ def convert_to_dataframe(file_input: Union[UploadedFile, Path, str]) -> pd.DataF
     # Read file based on determined type
     if "csv" in file_type:
         logger.info("Successfully loaded CSV file: %s", file_name)
+        # use the python engine when sep=None to avoid pandas falling back with a ParserWarning
         return pd.read_csv(
             file_obj,
             sep=None,
             parse_dates=[0],
             index_col=0,
+            engine="python",
         )
     logger.info("Successfully loaded Excel file: %s", file_name)
     return pd.read_excel(
