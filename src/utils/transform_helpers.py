@@ -1,6 +1,7 @@
 """Helper functions to organize results of transforms"""
 
 import pandas as pd
+import pywt
 
 from constants import ids, results_configs
 
@@ -32,9 +33,15 @@ def create_dwt_dict(
         dict[str, Type[Any]]: Dict of DWT dataclasses
     """
     transform_dict = {}
+    mother_wavelet = kwargs.get("mother_wavelet", dwt.MOTHER)
+
     for measure in measures_list:
+        y_values = data_for_dwt[measure].to_numpy()
+        # Calculate max level based on data length and wavelet
+        max_level = pywt.dwt_max_level(len(y_values), mother_wavelet.dec_len)
+
         transform_dict[measure] = dwt.DataForDWT(
-            y_values=data_for_dwt[measure].to_numpy(), **kwargs
+            y_values=y_values, mother_wavelet=mother_wavelet, levels=max_level
         )
     return transform_dict
 
@@ -82,7 +89,24 @@ def create_xwt_dict(
 def create_dwt_results_dict(
     dwt_data_dict: dict[str, DataForDWT], measures_list: list[str], **kwargs
 ) -> dict[str, ResultsFromDWT]:
-    """Create dict of DWT results instances"""
+    """Create dict of DWT results instances for plotting"""
+    results_dict = {}
+    for measure in measures_list:
+        # Only compute the DWT coefficients without regression
+        coeffs = pywt.wavedec(
+            dwt_data_dict[measure].y_values,
+            dwt_data_dict[measure].mother_wavelet,
+            level=dwt_data_dict[measure].levels,
+        )
+        results = ResultsFromDWT(coeffs, dwt_data_dict[measure].levels)
+        results_dict[measure] = results
+    return results_dict
+
+
+def create_dwt_regression_dict(
+    dwt_data_dict: dict[str, DataForDWT], measures_list: list[str], **kwargs
+) -> dict[str, ResultsFromDWT]:
+    """Create dict of DWT results instances including regression analysis"""
     results_dict = {}
     for measure in measures_list:
         results_dict[measure] = dwt.run_dwt(dwt_data_dict[measure], **kwargs)

@@ -34,7 +34,7 @@ class DataForDWT:
 
     y_values: npt.NDArray
     mother_wavelet: Type
-    levels: float = None
+    levels: int = None
 
 
 @dataclass
@@ -45,7 +45,7 @@ class ResultsFromDWT:
     `smoothed_signal_dict`: dictionary of coefficients for each time scale"""
 
     coeffs: npt.NDArray
-    levels: float
+    levels: int
     smoothed_signal_dict: Dict[int, Dict[str, npt.NDArray]] = field(
         default_factory=dict
     )

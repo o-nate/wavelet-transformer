@@ -220,53 +220,6 @@ def plot_dwt(
             * For single series: Shows progressive signal reconstruction
             * For two series: Creates side-by-side plots using Streamlit columns
             * Plots are ordered according to plot_order parameter
-
-    Examples
-    --------
-    >>> import pandas as pd
-    >>> import numpy as np
-    >>>
-    >>> # Create sample data
-    >>> dates = pd.date_range(start='2000-01-01', periods=1000, freq='D')
-    >>> values1 = np.sin(2 * np.pi * dates.dayofyear / 365)  # Annual cycle
-    >>> values2 = np.sin(2 * np.pi * dates.dayofyear / 180)  # Semi-annual cycle
-    >>> df = pd.DataFrame({
-    ...     'series1': values1,
-    ...     'series2': values2
-    ... }, index=dates)
-    >>>
-    >>> # Plot DWT decomposition
-    >>> fig1 = plot_dwt(df, ['series1'], plot_selection=ids.DECOMPOSE)
-    >>>
-    >>> # Plot DWT smoothing for two series
-    >>> fig2 = plot_dwt(
-    ...     df,
-    ...     ['series1', 'series2'],
-    ...     plot_selection=ids.SMOOTH,
-    ...     plot_order=ids.ASCEND
-    ... )
-
-    Notes
-    -----
-    - The function supports one or two time series analysis
-    - For two series in smoothing mode, plots are displayed side by side
-    - Uses Streamlit for interactive display
-    - Legends are disabled in the current implementation
-
-    See Also
-    --------
-    create_dwt_dict : Function creating DWT input dictionary
-    create_dwt_results_dict : Function processing DWT results
-    plot_dwt_decomposition_for : Function for decomposition visualization
-    plot_dwt_smoothing_for : Function for smoothing visualization
-    dwt.plot_smoothing : Base function for smoothing plots
-
-    Warnings
-    --------
-    - Input data should have regular time steps
-    - NaN values are automatically removed
-    - When using two series, both should have similar scale properties
-    - Memory usage increases with data length and decomposition levels
     """
 
     dwt_dict = create_dwt_dict(
@@ -276,7 +229,7 @@ def plot_dwt(
     )
     dwt_results_dict = create_dwt_results_dict(dwt_dict, series_names)
 
-    st.write(f"Showing DWT of: {', '.join(dwt_dict.keys())}")
+    st.write(f"Showing DWT of: `{', '.join(dwt_dict.keys())}`")
 
     t = data.dropna().index
     if plot_selection == ids.DECOMPOSE:
@@ -405,29 +358,6 @@ def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
         * Up: Second series leads by 90°
         * Down: First series leads by 90°
     - Cone of Influence: Region outside is subject to edge effects
-
-    Notes
-    -----
-    - Y-axis (period) is displayed in years
-    - Requires exactly two input series
-    - Plot includes statistical significance testing
-    - Edge effects are indicated by the cone of influence
-
-    See Also
-    --------
-    standardize_series : Function used for preprocessing
-    xwt.DataForXWT : Class handling XWT input data
-    xwt.run_xwt : Function performing the XWT computation
-    xwt.plot_xwt : Function creating the XWT visualization
-    set_x_ticks : Function formatting x-axis ticks
-
-    Warnings
-    --------
-    - Input series should have matching timestamps
-    - Series should be sufficiently long for meaningful analysis
-    - Edge effects become significant at larger scales
-    - Interpretation of phase differences requires careful consideration
-        of physical relationships between variables
     """
 
     # * Pre-process data: Standardize and detrend
@@ -520,6 +450,18 @@ def plot_wct(
         The generated figure containing the WCT plot.
         Note: The figure is also displayed using streamlit's st.pyplot().
 
+    Plot Interpretation
+    ------------------
+    - Heatmap: Shows common power between signals
+        * Brighter colors indicate stronger common power
+        * Black contours indicate statistical significance
+    - Arrows: Indicate phase relationship
+        * Right: In-phase
+        * Left: Anti-phase
+        * Up: Second series leads by 90°
+        * Down: First series leads by 90°
+    - Cone of Influence: Region outside is subject to edge effects
+
     Technical Details
     ----------------
     - Preprocessing:
@@ -545,29 +487,6 @@ def plot_wct(
         * Period displayed in logarithmic scale (base 2)
         * Custom x-axis tick formatting
         * Figure size: 10x8 inches
-
-    Notes
-    -----
-    - Y-axis (period) is displayed in years
-    - Requires exactly two input series
-    - Plot includes statistical significance testing
-    - Edge effects are indicated by the cone of influence
-
-    See Also
-    --------
-    standardize_series : Function used for preprocessing
-    wct.DataForWCT : Class handling WCT input data
-    wct.run_wct : Function performing the WCT computation
-    wct.plot_wct : Function creating the WCT visualization
-    set_x_ticks : Function formatting x-axis ticks
-
-    Warnings
-    --------
-    - Input series should have matching timestamps
-    - Series should be sufficiently long for meaningful analysis
-    - Edge effects become significant at larger scales
-    - Interpretation of phase differences requires careful consideration
-        of physical relationships between variables
     """
 
     # * Pre-process data: Standardize and detrend
@@ -626,6 +545,60 @@ def plot_wct(
     axs.set_ylabel("Period (years)", size=14)
 
     st.pyplot(fig)
+
+
+def generate_plot_without_regression(
+    combined_dfs: pd.DataFrame,
+    column_names: list[str],
+    dwt_plot_selection: str,
+    dwt_smooth_plot_order: str,
+) -> None:
+    """Generate DWT plot without regression analysis"""
+    dwt_dict = create_dwt_dict(
+        combined_dfs.dropna(),
+        column_names,
+        mother_wavelet=results_configs.DWT_MOTHER_WAVELET,
+    )
+    if dwt_plot_selection == ids.DECOMPOSE:
+        fig = plot_dwt_decomposition_for(
+            dwt_dict,
+            combined_dfs.dropna().index,
+            wavelet=results_configs.DWT_MOTHER_WAVELET,
+            figsize=(15, 20),
+            sharex=True,
+        )
+        st.pyplot(fig)
+    elif dwt_plot_selection == ids.SMOOTH:
+        ascending_order = bool(dwt_smooth_plot_order == ids.ASCEND)
+        if len(dwt_dict) == 1:
+            fig = plot_dwt_smoothing_for(
+                dwt_dict,
+                combined_dfs.dropna().index,
+                ascending=ascending_order,
+                figsize=(15, 20),
+                sharex=True,
+            )
+            st.pyplot(fig)
+        else:
+            col1, col2 = st.columns(2)
+            with col1:
+                fig1 = plot_dwt_smoothing_for(
+                    {list(dwt_dict.keys())[0]: dwt_dict[list(dwt_dict.keys())[0]]},
+                    combined_dfs.dropna().index,
+                    ascending=ascending_order,
+                    figsize=(15, 20),
+                    sharex=True,
+                )
+                st.pyplot(fig1)
+            with col2:
+                fig2 = plot_dwt_smoothing_for(
+                    {list(dwt_dict.keys())[1]: dwt_dict[list(dwt_dict.keys())[1]]},
+                    combined_dfs.dropna().index,
+                    ascending=ascending_order,
+                    figsize=(15, 20),
+                    sharex=True,
+                )
+                st.pyplot(fig2)
 
 
 def generate_plot(

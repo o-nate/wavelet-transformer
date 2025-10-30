@@ -43,7 +43,7 @@ def plot_dwt_decomposition_for(
             levels=transform_results_dict[comparison[0]].levels,
             **kwargs,
         )
-    elif len(transform_results_dict) == 1:
+    if len(transform_results_dict) == 1:
         return dwt.plot_components(
             label=comparison[0],
             coeffs=transform_results_dict[comparison[0]].coeffs,

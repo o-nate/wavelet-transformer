@@ -4,14 +4,17 @@ import os
 
 import streamlit as st
 import pandas as pd
+import numpy as np
 
 from constants import ids
 
 from src import wavelet_plots
 from src.utils.helpers import adjust_sidebar
-from src import descriptive_stats as ds
+from src import statistical_analysis as stats
 from src.utils.file_helpers import load_file
 from src.utils.config import INDEX_COLUMN_NAME
+from src.utils.transform_helpers import create_dwt_dict
+from src import dwt, regression
 
 from utils.logging_config import get_logger
 
@@ -31,28 +34,15 @@ transform_selection = st.sidebar.selectbox(
 calculate_significance = False
 significance_level = 95
 
-if transform_selection == ids.CWT:
-    calculate_significance = st.sidebar.checkbox("Calculate statistical significance", value=True)
-    if calculate_significance:
-        significance_level = st.sidebar.number_input(
-            "Significance level", min_value=0, max_value=100, value=95
-        )
-elif transform_selection == ids.WCT:
-    calculate_significance = st.sidebar.checkbox("Calculate statistical significance")
-    if calculate_significance:
-        significance_level = st.sidebar.number_input(
-            "Significance level", min_value=0, max_value=100, value=95
-        )
-
-dwt_plot_selection = adjust_sidebar(transform_selection)
-dwt_smooth_plot_order = adjust_sidebar(dwt_plot_selection)
-
 # Sample datasets
 selected_data = st.sidebar.multiselect(
     "**Select a dataset**",
     [ids.DISPLAY_NAMES[name] for name in ids.SAMPLE_DATA] + ["I have my own!🤓"],
     max_selections=2,
 )
+
+dwt_plot_selection = adjust_sidebar(transform_selection)
+dwt_smooth_plot_order = adjust_sidebar(dwt_plot_selection)
 
 # Initialize uploaded_files and file_dict
 uploaded_files = []
@@ -92,25 +82,57 @@ if "I have my own!🤓" in selected_data:
             file_dict[key] = file
             uploaded_files.append(file)
 
-
-# Create plot and descriptive stats tabs when files exist
+    # Create plot and descriptive stats tabs when files exist
 if file_dict:
-    tab_plot, tab_stats = st.tabs(["Plot", "Descriptive statistics"])
+    if transform_selection == ids.DWT and len(file_dict) == 2:
+        tab_plot, tab_stats, tab_regression = st.tabs(
+            ["Plot", "Descriptive statistics", "Time-scale regression"]
+        )
+    else:
+        tab_plot, tab_stats = st.tabs(["Plot", "Descriptive statistics"])
 
     with tab_plot:
-        # Reuse existing plotting function (it may write to Streamlit internally)
-        wavelet_plots.generate_plot(
-            file_dict=file_dict,
-            transform_selection=transform_selection,
-            selected_data=selected_data,
-            dwt_plot_selection=dwt_plot_selection,
-            dwt_smooth_plot_order=dwt_smooth_plot_order,
-            calculate_significance=calculate_significance,
-            significance_level=significance_level,
+        if transform_selection == ids.DWT and len(file_dict) == 2:
+            wavelet_plots.generate_plot(
+                file_dict=file_dict,
+                transform_selection=transform_selection,
+                selected_data=selected_data,
+                dwt_plot_selection=dwt_plot_selection,
+                dwt_smooth_plot_order=dwt_smooth_plot_order,
+            )
+        else:
+            wavelet_plots.generate_plot(
+                file_dict=file_dict,
+                transform_selection=transform_selection,
+                selected_data=selected_data,
+                dwt_plot_selection=dwt_plot_selection,
+                dwt_smooth_plot_order=dwt_smooth_plot_order,
+                calculate_significance=calculate_significance,
+                significance_level=significance_level,
+            )
+
+    if transform_selection == ids.CWT and len(file_dict) == 1:
+        calculate_significance = st.sidebar.checkbox(
+            "Calculate statistical significance", value=True
         )
+        if calculate_significance:
+            significance_level = st.sidebar.number_input(
+                "Significance level", min_value=0, max_value=100, value=95
+            )
+    elif transform_selection == ids.WCT or (
+        transform_selection == ids.CWT and len(file_dict) > 1
+    ):
+        calculate_significance = st.sidebar.checkbox(
+            "Calculate statistical significance"
+        )
+        if calculate_significance:
+            significance_level = st.sidebar.number_input(
+                "Significance level", min_value=0, max_value=100, value=95
+            )
 
     with tab_stats:
-        st.text("See below some descriptive statistics for the datasets loaded.")
+        plural = "s" if len(file_dict) > 1 else ""
+        st.subheader(f"Descriptive statistics for the dataset{plural} loaded")
         parts = []
         errors = []
         for name, path_or_file in file_dict.items():
@@ -152,11 +174,11 @@ if file_dict:
             merged = merged.sort_values("date").reset_index(drop=True)
 
             # Call descriptive stats generator on the merged dataframe (expects a 'date' column)
-            results_df = ds.generate_descriptive_statistics(
-                merged, ds.DESCRIPTIVE_STATS
+            results_df = stats.generate_descriptive_statistics(
+                merged, stats.DESCRIPTIVE_STATS
             )
-            st.text(
-                f"Start date: {merged['date'].min().date()} | End date: {merged['date'].max().date()}"
+            st.markdown(
+                f"Start date: `{merged['date'].min().date()}` | End date: `{merged['date'].max().date()}`"
             )
             st.dataframe(results_df)
         else:
@@ -164,6 +186,78 @@ if file_dict:
 
         for err in errors:
             st.error(f"Could not compute descriptive stats for {err}")
+
+    if transform_selection == ids.DWT and len(file_dict) == 2:
+        with tab_regression:
+            st.markdown("### Time-scale Regression Analysis", unsafe_allow_html=True)
+
+            # Load and process the data
+            data_frames = []
+            for name, path_or_file in file_dict.items():
+                df = load_file(path_or_file)
+                if df is not None:
+                    # Process datetime index if needed
+                    if (
+                        df.index.name == INDEX_COLUMN_NAME
+                        or INDEX_COLUMN_NAME in df.columns
+                    ):
+                        df = df.reset_index()
+                        if INDEX_COLUMN_NAME in df.columns:
+                            df = df.rename(columns={INDEX_COLUMN_NAME: "date"})
+
+                    if "date" in df.columns:
+                        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+
+                    value_cols = [c for c in df.columns if c.lower() != "date"]
+                    if value_cols:
+                        df_renamed = df[["date", value_cols[0]]].copy()
+                        df_renamed.columns = ["date", name]
+                        data_frames.append(df_renamed)
+
+            if len(data_frames) == 2:
+                # Merge the data frames
+                merged_df = data_frames[0].merge(data_frames[1], on="date", how="inner")
+                merged_df = merged_df.sort_values("date").reset_index(drop=True)
+
+                if not merged_df.empty:
+                    # Get the column names for X and Y variables
+                    var_names = list(merged_df.columns[1:])  # Skip date column
+                    x_var = var_names[0]
+                    y_var = var_names[1]
+
+                    # Prepare data and validate
+                    level = 6  # Use a fixed level of 6 for decomposition
+                    x_data = merged_df[x_var].values
+                    y_data = merged_df[y_var].values
+
+                    # Calculate time-scale regression
+                    try:
+                        # Check for invalid values
+                        if not (
+                            np.isfinite(x_data).all() and np.isfinite(y_data).all()
+                        ):
+                            st.error(
+                                "Data contains invalid values (NaN or infinite). Please check your input data."
+                            )
+                        else:
+                            results = regression.time_scale_regression(
+                                x_data, y_data, level, "db4", add_constant=True
+                            )
+                            # Display results
+                            st.markdown(f"Independent variable (x1): `{x_var}`")
+                            st.markdown(f"Dependent variable (y): `{y_var}`")
+                            st.markdown(f"Number of decomposition levels: `{level}`")
+
+                            # Convert regression results to HTML and display
+                            st.write(results.as_html(), unsafe_allow_html=True)
+                    except Exception as e:
+                        st.error(f"Error during regression analysis: {str(e)}")
+                else:
+                    st.error("No overlapping dates found between the two datasets.")
+            else:
+                st.error(
+                    "Could not properly load both datasets for regression analysis."
+                )
 
 else:
     st.text(
@@ -174,7 +268,7 @@ else:
     st.text("2.) 🌊Select a wavelet transform.")
     st.text("3.) 📈Select a sample dataset or upload your own!")
 
-st.markdown(
-    """*Please note that this tool has been tested on a limited number of datasets so far. 
+    st.markdown(
+        """\n*Please note that this tool has been tested on a limited number of datasets so far. 
         Please, [contact me](mailto:nathaniel@nathaniellawrence.com) if yours isn't working!*"""
-)
+    )

@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from src import descriptive_stats
+from src import statistical_analysis
 
 from utils.logging_config import get_logger
 
@@ -18,7 +18,7 @@ y = np.random.uniform(size=300)
 
 df = pd.DataFrame({"date": date, "x": x, "y": y})
 
-results = descriptive_stats.test_normality(
+results = statistical_analysis.test_normality(
     "Shapiro-Wilk", data=df, date_column="date", add_pvalue_stars=True
 )
 assert list(results.keys()) == ["x", "y"]
@@ -32,7 +32,7 @@ y = np.random.uniform(size=3000)
 
 df = pd.DataFrame({"date": date, "x": x, "y": y})
 
-results = descriptive_stats.test_normality(
+results = statistical_analysis.test_normality(
     "Jarque-Bera", data=df, date_column="date", add_pvalue_stars=True
 )
 assert list(results.keys()) == ["x", "y"]
