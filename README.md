@@ -1,10 +1,10 @@
 # Wavelet Transformer
 This provides an easy-to-use interface for anyone to test out wavelet analysis on their time series data. The underlying algorithms are based off of my paper [Inflation expectations in time and frequency: A wavelet analysis](https://www.nathaniellawrence.com/research#h.z59n5ss724ja).
 
-<i>Note: This version is still a prototype and quite brittle. Please, let me know what bugs, errors, etc. arise for you when using.</i>
+<i>Note: This version is still a prototype. Please, let me know what bugs, errors, etc. arise for you when using.</i>
 
 ## What is wavelet analysis?
-[Wavelet](https://en.wikipedia.org/wiki/Wavelet) analysis allows us to explore the cyclical nature of time series, essentially extracting three dimensions of information from an otherwise one-dimensional dataset. Through the different wavelet transforms (continuous, CWT; cross-wavelet, XWT; and discrete, DWT), we can uncover and quantify patterns in the data that are imperceptible.
+[Wavelet](https://en.wikipedia.org/wiki/Wavelet) analysis allows us to explore the cyclical nature of time series, essentially extracting three dimensions of information from an otherwise one-dimensional dataset. Through the different wavelet transforms (continuous, CWT; wavelet coherence, WCT; and discrete, DWT), we can uncover and quantify patterns in the data that are imperceptible.
 
 Normally, we would use a [Fourier transform](https://en.wikipedia.org/wiki/Fourier_transform) to identify the underlying cycles in a complex series, like in the image below. Effectively, the Fourier transform provides us a "fingerprint" of the underlying cyclical functions that produce the complex series in the aggregate. But, this only works for stationary data. In the case of nonstationary data, this fingerprints changes over time.
 
