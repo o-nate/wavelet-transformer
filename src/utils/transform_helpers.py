@@ -39,11 +39,9 @@ def create_dwt_dict(
         y_values = data_for_dwt[measure].to_numpy()
         # Calculate max level based on data length and wavelet
         max_level = pywt.dwt_max_level(len(y_values), mother_wavelet.dec_len)
-        # Use minimum of 4 and max_level to ensure we don't decompose too deeply
-        levels = min(4, max_level)
 
         transform_dict[measure] = dwt.DataForDWT(
-            y_values=y_values, mother_wavelet=mother_wavelet, levels=levels
+            y_values=y_values, mother_wavelet=mother_wavelet, levels=max_level
         )
     return transform_dict
 

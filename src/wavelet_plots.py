@@ -229,7 +229,7 @@ def plot_dwt(
     )
     dwt_results_dict = create_dwt_results_dict(dwt_dict, series_names)
 
-    st.write(f"Showing DWT of: {', '.join(dwt_dict.keys())}")
+    st.write(f"Showing DWT of: `{', '.join(dwt_dict.keys())}`")
 
     t = data.dropna().index
     if plot_selection == ids.DECOMPOSE:

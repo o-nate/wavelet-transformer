@@ -93,8 +93,6 @@ if file_dict:
 
     with tab_plot:
         if transform_selection == ids.DWT and len(file_dict) == 2:
-            # For DWT with two files, don't include regression in plot
-            st.write("Showing DWT decomposition")
             wavelet_plots.generate_plot(
                 file_dict=file_dict,
                 transform_selection=transform_selection,
@@ -228,7 +226,7 @@ if file_dict:
                     y_var = var_names[1]
 
                     # Prepare data and validate
-                    level = 4  # Use a fixed level of 4 for decomposition
+                    level = 6  # Use a fixed level of 6 for decomposition
                     x_data = merged_df[x_var].values
                     y_data = merged_df[y_var].values
 
@@ -270,7 +268,7 @@ else:
     st.text("2.) 🌊Select a wavelet transform.")
     st.text("3.) 📈Select a sample dataset or upload your own!")
 
-st.markdown(
-    """\n*Please note that this tool has been tested on a limited number of datasets so far. 
+    st.markdown(
+        """\n*Please note that this tool has been tested on a limited number of datasets so far. 
         Please, [contact me](mailto:nathaniel@nathaniellawrence.com) if yours isn't working!*"""
-)
+    )
