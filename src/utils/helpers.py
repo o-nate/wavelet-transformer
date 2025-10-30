@@ -97,28 +97,6 @@ def combine_series(dataframes: List[pd.DataFrame], **kwargs) -> pd.DataFrame:
     return reduce(lambda left, right: pd.merge(left, right, **kwargs), dataframes)
 
 
-def adjust_sidebar(selection: str) -> str:
-    """Add second option to sidebar if DWT selected
-
-    Args:
-        selection (str): _description_
-
-    Returns:
-        str: _description_
-    """
-    if selection == ids.DWT:
-        return st.sidebar.selectbox(
-            "**Select a DWT plot**",
-            (ids.SMOOTH, ids.DECOMPOSE),
-            key="dwt_selection",
-        )
-    if selection == ids.SMOOTH:
-        return st.sidebar.radio(
-            "",
-            (ids.DESCEND, ids.ASCEND),
-        )
-
-
 def adjust_series_for_ar1_bound(
     data_dict: dict[str, pd.DataFrame],
     series_to_keep: str,
