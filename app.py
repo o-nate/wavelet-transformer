@@ -190,7 +190,7 @@ if file_dict:
             st.error(f"Could not compute descriptive stats for {err}")
 
     if transform_selection == ids.DWT and len(file_dict) == 2:
-        if "tab_regression" in locals():
+        with tab_regression:
             st.markdown("### Time-scale Regression Analysis", unsafe_allow_html=True)
 
             # Load and process the data
