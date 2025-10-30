@@ -89,26 +89,33 @@ def wavelet_approximation(
 
 
 def time_scale_regression(
-    input_coeffs: npt.NDArray,
-    output_coeffs: npt.NDArray,
+    input_data: npt.NDArray,
+    output_data: npt.NDArray,
     levels: int,
     mother_wavelet: str,
     add_constant: bool = True,
 ) -> Type[statsmodels.iolib.summary2.Summary]:
-    """Regresses output on  input for each component vector S_J, D_J, ..., D_1,
-    where J=levels"""
+    """Regresses output on input for each component vector S_J, D_J, ..., D_1,
+    where J=levels. Performs DWT decomposition first."""
+    wavelet = pywt.Wavelet(mother_wavelet)
+
+    # Perform DWT decomposition
+    input_coeffs = pywt.wavedec(input_data, wavelet, level=levels)
+    output_coeffs = pywt.wavedec(output_data, wavelet, level=levels)
+
     regressions_dict = {}
     for j in range(levels + 1):
         if j == 0:
             vector_name = f"S_{levels}"
         else:
             vector_name = f"D_{levels - j + 1}"
-        print(f"Regressing on component vector {vector_name}")
-        # * Reconstruct each component vector indiviually
-        logger.debug("lengths, %s, %s", len(input_coeffs[j]), len(output_coeffs[j]))
-        input_j = dwt.reconstruct_signal_component(input_coeffs, mother_wavelet, j)
-        output_j = dwt.reconstruct_signal_component(output_coeffs, mother_wavelet, j)
-        logger.debug("lengths output, %s, %s", len(input_j), len(output_j))
+        # * Reconstruct each component vector individually
+        input_j = dwt.reconstruct_signal_component(
+            input_coeffs, mother_wavelet, j, for_regression=True
+        )
+        output_j = dwt.reconstruct_signal_component(
+            output_coeffs, mother_wavelet, j, for_regression=True
+        )
 
         # * Run regression
         if add_constant:

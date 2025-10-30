@@ -34,7 +34,7 @@ class DataForDWT:
 
     y_values: npt.NDArray
     mother_wavelet: Type
-    levels: float = None
+    levels: int = None
 
 
 @dataclass
@@ -45,7 +45,7 @@ class ResultsFromDWT:
     `smoothed_signal_dict`: dictionary of coefficients for each time scale"""
 
     coeffs: npt.NDArray
-    levels: float
+    levels: int
     smoothed_signal_dict: Dict[int, Dict[str, npt.NDArray]] = field(
         default_factory=dict
     )
@@ -108,9 +108,14 @@ def run_dwt(dwt_data: Type[DataForDWT]) -> Type[ResultsFromDWT]:
 
 
 def reconstruct_signal_component(
-    signal_coeffs: list, wavelet: str, level: int
+    signal_coeffs: list, wavelet: str, level: int, for_regression: bool = False
 ) -> tuple[dict, int]:
     """Reconstruct individual component"""
+    if not for_regression and level == 0:
+        return np.zeros_like(
+            signal_coeffs[0]
+        )  # Return zeros for smoothing component in plots
+
     component_coeffs = signal_coeffs.copy()
     for l in range(len(signal_coeffs)):
         if l == level:
