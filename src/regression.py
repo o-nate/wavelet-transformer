@@ -110,12 +110,8 @@ def time_scale_regression(
         else:
             vector_name = f"D_{levels - j + 1}"
         # * Reconstruct each component vector individually
-        input_j = dwt.reconstruct_signal_component(
-            input_coeffs, mother_wavelet, j, for_regression=True
-        )
-        output_j = dwt.reconstruct_signal_component(
-            output_coeffs, mother_wavelet, j, for_regression=True
-        )
+        input_j = dwt.reconstruct_signal_component(input_coeffs, mother_wavelet, j)
+        output_j = dwt.reconstruct_signal_component(output_coeffs, mother_wavelet, j)
 
         # * Run regression
         if add_constant:
@@ -326,8 +322,8 @@ def main() -> None:
             14:17
         ]:  # + SERIES_COMPARISONS[1:4] + SERIES_COMPARISONS[17:]
             time_scale_results = time_scale_regression(
-                input_coeffs=dwt_results_dict[comp[0]].coeffs,
-                output_coeffs=dwt_results_dict[comp[1]].coeffs,
+                input_data=dwt_results_dict[comp[0]].coeffs,
+                output_data=dwt_results_dict[comp[1]].coeffs,
                 levels=dwt_results_dict[comp[0]].levels,
                 mother_wavelet=results_configs.DWT_MOTHER_WAVELET,
             )

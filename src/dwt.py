@@ -108,14 +108,9 @@ def run_dwt(dwt_data: Type[DataForDWT]) -> Type[ResultsFromDWT]:
 
 
 def reconstruct_signal_component(
-    signal_coeffs: list, wavelet: str, level: int, for_regression: bool = False
+    signal_coeffs: list, wavelet: str, level: int
 ) -> tuple[dict, int]:
     """Reconstruct individual component"""
-    if not for_regression and level == 0:
-        return np.zeros_like(
-            signal_coeffs[0]
-        )  # Return zeros for smoothing component in plots
-
     component_coeffs = signal_coeffs.copy()
     for l in range(len(signal_coeffs)):
         if l == level:

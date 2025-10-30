@@ -34,15 +34,15 @@ transform_selection = st.sidebar.selectbox(
 calculate_significance = False
 significance_level = 95
 
-dwt_plot_selection = adjust_sidebar(transform_selection)
-dwt_smooth_plot_order = adjust_sidebar(dwt_plot_selection)
-
 # Sample datasets
 selected_data = st.sidebar.multiselect(
     "**Select a dataset**",
     [ids.DISPLAY_NAMES[name] for name in ids.SAMPLE_DATA] + ["I have my own!🤓"],
     max_selections=2,
 )
+
+dwt_plot_selection = adjust_sidebar(transform_selection)
+dwt_smooth_plot_order = adjust_sidebar(dwt_plot_selection)
 
 # Initialize uploaded_files and file_dict
 uploaded_files = []
@@ -191,8 +191,7 @@ if file_dict:
 
     if transform_selection == ids.DWT and len(file_dict) == 2:
         if "tab_regression" in locals():
-            logger.debug("Creating time-scale regression tab")
-            st.markdown("## Time-scale Regression Analysis", unsafe_allow_html=True)
+            st.markdown("### Time-scale Regression Analysis", unsafe_allow_html=True)
 
             # Load and process the data
             data_frames = []
@@ -247,10 +246,9 @@ if file_dict:
                                 x_data, y_data, level, "db4", add_constant=True
                             )
                             # Display results
-                            st.markdown("### Regression Results")
-                            st.markdown(f"Independent variable (X): **{x_var}**")
-                            st.markdown(f"Dependent variable (Y): **{y_var}**")
-                            st.markdown(f"Number of decomposition levels: **{level}**")
+                            st.markdown(f"Independent variable (x1): `{x_var}`")
+                            st.markdown(f"Dependent variable (y): `{y_var}`")
+                            st.markdown(f"Number of decomposition levels: `{level}`")
 
                             # Convert regression results to HTML and display
                             st.write(results.as_html(), unsafe_allow_html=True)
@@ -273,6 +271,6 @@ else:
     st.text("3.) 📈Select a sample dataset or upload your own!")
 
 st.markdown(
-    """*Please note that this tool has been tested on a limited number of datasets so far. 
+    """\n*Please note that this tool has been tested on a limited number of datasets so far. 
         Please, [contact me](mailto:nathaniel@nathaniellawrence.com) if yours isn't working!*"""
 )
