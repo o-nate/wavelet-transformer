@@ -276,7 +276,7 @@ def plot_dwt(
                 )
                 fig1.suptitle(f"Smoothing of {series_names[0]}", fontsize=36)
 
-                st.pyplot(fig1, use_container_width=True)
+                st.pyplot(fig1, width="stretch")
 
             with col2:
                 dwt_results_dict[series_names[1]].smooth_signal(
@@ -293,7 +293,7 @@ def plot_dwt(
                 )
                 fig2.suptitle(f"Smoothing of {series_names[1]}", fontsize=36)
 
-                st.pyplot(fig2, use_container_width=True)
+                st.pyplot(fig2, width="stretch")
 
 
 def plot_xwt(data: pd.DataFrame, series_names: list[str]) -> Figure:
